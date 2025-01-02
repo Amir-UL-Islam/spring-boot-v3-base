@@ -1,0 +1,20 @@
+
+== Step 1
+* Matchers:
+** antMatchers: Matches based on the Ant-style patterns (e.g., /admin/**).
+** mvcMatchers: Matches paths based on Spring MVC's PathPatternParser.
+
+{blank} +
+
+* Access Methods:
+** permitAll(): Allows access to everyone.
+** hasRole(String): Checks if the user has a specific role (role names should start without the ROLE_ prefix in configuration but will be prefixed internally).
+** hasAuthority(String): Checks if the user has a specific authority.
+** hasAnyRole(String...): Allows access if the user has any one of the specified roles.
+** authenticated(): Requires the user to be logged in.
+
+== Step 2
+* Static Mapping
+** CSS, JS, etc
+* Role Based
+* Dynamic Mapping
