@@ -26,6 +26,7 @@ repositories {
 dependencies {
 
     implementation project(':module:secutiry')
+    implementation project(':module:export-import')
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
