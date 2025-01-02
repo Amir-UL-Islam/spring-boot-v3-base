@@ -1,1 +1,4 @@
 rootProject.name = 'v3base'
+include 'module:secutiry'
+findProject(':module:secutiry')?.name = 'secutiry'
+
