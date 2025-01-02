@@ -3,4 +3,8 @@ include 'module:secutiry'
 findProject(':module:secutiry')?.name = 'secutiry'
 include 'module:export-import'
 findProject(':module:export-import')?.name = 'export-import'
+include 'module:request-response'
+findProject(':module:request-response')?.name = 'request-response'
+include 'module:common'
+findProject(':module:common')?.name = 'common'
 

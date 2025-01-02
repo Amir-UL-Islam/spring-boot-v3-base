@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.hmtmcse'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+}
+
+test {
+    useJUnitPlatform()
+}
