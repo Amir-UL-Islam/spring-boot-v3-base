@@ -1,9 +1,12 @@
 package com.hmtmcse.v3base.services;
 
+import com.hmtmcse.v3base.exceptions.NotFoundException;
 import com.hmtmcse.v3base.model.entites.Privilege;
 import com.hmtmcse.v3base.repositories.PrivilegeRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -12,17 +15,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PrivilegeService {
 
     private final PrivilegeRepository privilegeRepository;
+    private static final Logger logger = LoggerFactory.getLogger(PrivilegeService.class);
     private final static String[] BASIC_URLs = {"/api/v1/users/welcome", "/api/v1/users/test-user-role"};
 
-    public Privilege findById(Long id) {
-        return privilegeRepository.findById(id).orElse(null);
+    public Privilege findById(Long id) throws NotFoundException {
+        return privilegeRepository.findById(id).orElseThrow(() -> new NotFoundException("Privilege not found!"));
     }
 
     public boolean hasPermission(Authentication authentication, HttpServletRequest request) {

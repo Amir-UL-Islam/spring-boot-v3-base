@@ -23,7 +23,7 @@ public class Privilege {
 
     private String urlPattern;
 
-    private String httpMethod;
+    private String httpMethod; // no need
 
     private boolean isBasic = true;
 }

@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     implementation project(':module:common')
-    implementation 'codemining.deps:com.fasterxml.jackson.annotation:1.0'
+    implementation 'codemining.deps:com.fasterxml.jackson.annotation:2.11.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

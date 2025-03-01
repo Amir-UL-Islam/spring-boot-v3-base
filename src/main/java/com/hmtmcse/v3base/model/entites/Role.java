@@ -36,7 +36,6 @@ public class Role {
     )
     private List<Privilege> privileges = new ArrayList<>();
 
-    @Column(nullable = false)
     private boolean restricted = true;
 
     public Role() {

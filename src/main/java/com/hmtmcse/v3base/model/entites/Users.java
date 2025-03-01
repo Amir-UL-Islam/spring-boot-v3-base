@@ -22,7 +22,6 @@ public class Users {
 
     private String lastName;
 
-    @Column(unique = true, nullable = false)
     private String username;
 
     private String email;
@@ -31,7 +30,6 @@ public class Users {
 
     private Byte gender;
 
-    @Column(length = 512, nullable = false)
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {
