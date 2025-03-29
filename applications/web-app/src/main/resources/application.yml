@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: v3base
+
+  datasource:
+    url: "jdbc:mysql://localhost:3306/_security"
+    username: "root"
+    password: "password"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+  #    hikari:
+  #      maximum-pool-size: 5
+
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect.storage_engine: innodb
+        format_sql: true
+  #        generate_statistics: true
+
+  security:
+    user:
+      name: admin
+      password: admin
+
+#logging:
+#  level:
+#    root: DEBUG
+#    org:
+#      hibernate:
+#        SQL: DEBUG
+#        type: TRACE
+#        stat: DEBUG
+#        type.descriptor.sql.BasicBinder: TRACE
+##        transaction: TRACE
+##        internal.tenant: TRACE
+##        internal.Cache: TRACE
+##        internal.jdbc: TRACE
+##        internal.jdbc.select: TRACE
+##        internal.jdbc.update: TRACE
+##        internal.jdbc.resultset: TRACE
+##        internal.jdbc.statement: TRACE
+##        internal.jdbc.connection: TRACE
+##        internal.jdbc.batch: TRACE
+#    spring:
+#      datasource: TRACE
+#      jpa: TRACE
+#      orm: TRACE
+##  logger:
+##    org.hibernate.stat: DEBUG
+##    org.hibernate.type: TRACE
+##    org.hibernate.cache: TRACE
+##    org.hibernate.transaction: TRACE
+##    org.hibernate.engine: TRACE
+##    org.hibernate.event: TRACE
+##    org.hibernate.sql: DEBUG
+##    org.hibernate.jpa: TRACE
+##    org.hibernate.dialect: TRACE
+##    org.springframework.transaction: TRACE
+##    org.springframework.orm.hibernate5: TRACE
+##    org.springframework.jdbc.datasource: TRACE
+##    org.springframework.jdbc.core: TRACE
+##    org.springframework.jdbc.connection: TRACE
+server:
+  port: 9988
