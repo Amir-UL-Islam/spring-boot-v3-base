@@ -1,19 +1,21 @@
 package com.problemfighter.pfspring.restapi.rr.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(Include.NON_NULL)
 public class PageableResponse<T> extends ErrorAndBaseData {
     public List<T> data;
     public PaginationData pagination;
 
-    public PaginationData addPagination(Integer page, Integer itemPerPage){
-        if (pagination == null){
-            pagination = new PaginationData();
+    public PaginationData addPagination(Integer page, Integer itemPerPage) {
+        if (this.pagination == null) {
+            this.pagination = new PaginationData();
         }
-        pagination.page = page;
-        pagination.itemPerPage = itemPerPage;
-        return pagination;
+
+        this.pagination.page = page;
+        this.pagination.itemPerPage = itemPerPage;
+        return this.pagination;
     }
 }

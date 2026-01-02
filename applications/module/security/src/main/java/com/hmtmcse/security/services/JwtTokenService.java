@@ -1,6 +1,6 @@
 package com.hmtmcse.security.services;
 
-import com.hmtmcse.security.model.entites.Users;
+import com.hmtmcse.security.model.entites.RegisteredUsers;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -19,11 +19,11 @@ import java.util.function.Function;
 public class JwtTokenService {
     private static final String SIGNATURE_KEY = "YWlvayBsZW8gPSBBbWlyLVVMIElzbGFtIE9wdSBLaGFsaWZhIGFuZCBMRU8=";
 
-    public String createToken(Users userDetails) {
+    public String createToken(RegisteredUsers userDetails) {
         return createToken(new HashMap<>(), userDetails);
     }
 
-    public String createToken(Map<String, Object> claims, Users userDetails) {
+    public String createToken(Map<String, Object> claims, RegisteredUsers userDetails) {
         return Jwts
                 .builder()
                 .setClaims(claims)

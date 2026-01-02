@@ -8,6 +8,7 @@ public enum Status {
     partial("partial");
 
     public final String label;
+
     private Status(String label) {
         this.label = label;
     }

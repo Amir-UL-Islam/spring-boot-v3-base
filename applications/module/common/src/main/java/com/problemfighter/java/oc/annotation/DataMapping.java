@@ -6,8 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD})
 public @interface DataMapping {
-    public String source();
-    public boolean customProcess() default false;
+    String source();
+
+    boolean customProcess() default false;
 }

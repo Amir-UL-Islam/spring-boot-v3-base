@@ -1,10 +1,9 @@
 package com.problemfighter.java.oc.common;
 
 public interface ProcessCustomCopy<E, D> {
+    void meAsSrc(D var1, E var2);
 
-    void meAsSrc(D source, E destination);
-
-    void meAsDst(E source, D destination);
+    void meAsDst(E var1, D var2);
 
     default void csvExport(E source, E destination) {
     }

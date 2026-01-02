@@ -1,21 +1,18 @@
 package com.hmtmcse.security.model.mappers;
 
 import com.hmtmcse.security.model.dtos.request.Registration;
-import com.hmtmcse.security.model.entites.Users;
+import com.hmtmcse.security.model.entites.RegisteredUsers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
 public class UserMappers {
     private final PasswordEncoder passwordEncoder;
 
-    public Users map(Registration dto) {
-        Users entity = new Users();
-        entity.setCreated(new Date(dto.getCreated() == null || dto.getCreated() == 0 ? System.currentTimeMillis() : dto.getCreated()));
+    public RegisteredUsers map(Registration dto) {
+        RegisteredUsers entity = new RegisteredUsers();
         entity.setFirstName(dto.getFirstName());
         entity.setLastName(dto.getLastName());
         entity.setUsername(dto.getUsername());

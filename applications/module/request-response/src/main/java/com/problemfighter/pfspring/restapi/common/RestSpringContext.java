@@ -8,22 +8,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class RestSpringContext implements ApplicationContextAware {
-
     private static ApplicationContext applicationContext;
 
-    @Override
     public void setApplicationContext(ApplicationContext _applicationContext) throws BeansException {
         applicationContext = _applicationContext;
     }
 
     public static <T> T getBean(Class<T> klass) {
-        if (applicationContext != null) {
-            return applicationContext.getBean(klass);
-        }
-        return null;
+        return (T)(applicationContext != null ? applicationContext.getBean(klass) : null);
     }
 
     public static Environment environment() {
-        return getBean(Environment.class);
+        return (Environment)getBean(Environment.class);
     }
 }

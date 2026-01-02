@@ -44,7 +44,7 @@ public class UserAuth implements UserDetails {
     private boolean admin = false;
 
 
-    public UserAuth(Users user) {
+    public UserAuth(RegisteredUsers user) {
         if (user == null) throw new IllegalArgumentException("User can not be null!");
         this.id = user.getId();
         this.firstName = user.getFirstName();

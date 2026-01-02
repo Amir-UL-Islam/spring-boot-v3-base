@@ -27,7 +27,7 @@ public class Role {
 
     private String description;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @Fetch(FetchMode.SUBSELECT)
     @JoinTable(
             name = "role_privilege",

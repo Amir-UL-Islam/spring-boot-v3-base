@@ -2,14 +2,13 @@ package com.hmtmcse.security.model.mappers;
 
 import com.hmtmcse.security.model.dtos.PrivilegeDTO;
 import com.hmtmcse.security.model.entites.Privilege;
-import lombok.RequiredArgsConstructor;
+import com.problemfighter.pfspring.restapi.inter.CopyInterceptor;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
 @Component
-@RequiredArgsConstructor
-public class PrivilegeMapper {
+public class PrivilegeMapper implements CopyInterceptor<Privilege, PrivilegeDTO, PrivilegeDTO> {
     public Privilege map(PrivilegeDTO dto) {
         Privilege entity = new Privilege();
         entity.setCreated(new Date(dto.getCreated() == null || dto.getCreated() == 0 ? System.currentTimeMillis() : dto.getCreated()));
@@ -30,5 +29,15 @@ public class PrivilegeMapper {
         dto.setName(entity.getName());
         dto.setBasic(entity.isBasic());
         return dto;
+    }
+
+    @Override
+    public void meAsSrc(PrivilegeDTO source, Privilege destination) {
+
+    }
+
+    @Override
+    public void meAsDst(Privilege source, PrivilegeDTO destination) {
+
     }
 }

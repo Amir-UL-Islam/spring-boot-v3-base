@@ -2,25 +2,17 @@ package com.problemfighter.pfspring.restapi.exception;
 
 import com.problemfighter.pfspring.restapi.rr.ResponseProcessor;
 import com.problemfighter.pfspring.restapi.rr.response.MessageResponse;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 
-
 public class HttpToApiException {
-
-
     private int getResponseCode(HttpServletRequest request) {
-        Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
-        if (status != null) {
-            return Integer.parseInt(status.toString());
-        }
-        return 0;
+        Object status = request.getAttribute("javax.servlet.error.status_code");
+        return status != null ? Integer.parseInt(status.toString()) : 0;
     }
 
-
     public MessageResponse processError(HttpServletRequest request) {
-        int statusCode = getResponseCode(request);
+        int statusCode = this.getResponseCode(request);
         if (statusCode == HttpStatus.NOT_FOUND.value()) {
             return ResponseProcessor.notFound();
         } else if (statusCode == HttpStatus.BAD_REQUEST.value()) {
@@ -29,14 +21,12 @@ public class HttpToApiException {
             return ResponseProcessor.unauthorized();
         } else if (statusCode == HttpStatus.FORBIDDEN.value()) {
             return ResponseProcessor.forbidden();
-        } else if (statusCode == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
-            return ResponseProcessor.codeError();
+        } else {
+            return statusCode == HttpStatus.INTERNAL_SERVER_ERROR.value() ? ResponseProcessor.codeError() : ResponseProcessor.unknownError();
         }
-        return ResponseProcessor.unknownError();
     }
 
     public static MessageResponse handleException(HttpServletRequest request) {
-        return new HttpToApiException().processError(request);
+        return (new HttpToApiException()).processError(request);
     }
-
 }

@@ -2,59 +2,60 @@ package com.problemfighter.java.oc.data;
 
 import com.problemfighter.java.oc.common.ProcessCustomCopy;
 import com.problemfighter.java.oc.reflection.ReflectionProcessor;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class ObjectCopierInfoDetails<S, D> {
-
     public Boolean isStrictMapping = true;
-
-    // According to presents of DataMapping Annotation
     public Boolean amIDestination = true;
     public ProcessCustomCopy<Object, Object> processCustomCopy;
     public String mappingClassName;
-    private ReflectionProcessor reflectionProcessor;
-
-    public ObjectCopierInfoDetails() {
-        reflectionProcessor = new ReflectionProcessor();
-    }
+    private ReflectionProcessor reflectionProcessor = new ReflectionProcessor();
+    public List<CopySourceDstField> copySourceDstFields = new ArrayList();
 
     public Boolean callMeAsDst(Object source, Object destination) {
-        if (reflectionProcessor.isMethodExist(processCustomCopy.getClass(), "meAsDst", destination.getClass(), source.getClass())) {
-            reflectionProcessor.invokeMethod(processCustomCopy, "meAsDst", destination, source);
-        } else if (reflectionProcessor.isMethodExist(processCustomCopy.getClass(), "meAsDst", source.getClass(), destination.getClass())) {
-            reflectionProcessor.invokeMethod(processCustomCopy, "meAsDst", source, destination);
+        if (this.reflectionProcessor.isMethodExist(this.processCustomCopy.getClass(), "meAsDst", new Class[]{destination.getClass(), source.getClass()})) {
+            this.reflectionProcessor.invokeMethod(this.processCustomCopy, "meAsDst", new Object[]{destination, source});
         } else {
-            return false;
+            if (!this.reflectionProcessor.isMethodExist(this.processCustomCopy.getClass(), "meAsDst", new Class[]{source.getClass(), destination.getClass()})) {
+                return false;
+            }
+
+            this.reflectionProcessor.invokeMethod(this.processCustomCopy, "meAsDst", new Object[]{source, destination});
         }
+
         return true;
     }
 
     public Boolean callMeAsSst(Object source, Object destination) {
-        if (reflectionProcessor.isMethodExist(processCustomCopy.getClass(), "meAsSrc", destination.getClass(), source.getClass())) {
-            reflectionProcessor.invokeMethod(processCustomCopy, "meAsSrc", destination, source);
-        } else if (reflectionProcessor.isMethodExist(processCustomCopy.getClass(), "meAsSrc", source.getClass(), destination.getClass())) {
-            reflectionProcessor.invokeMethod(processCustomCopy, "meAsSrc", source, destination);
+        if (this.reflectionProcessor.isMethodExist(this.processCustomCopy.getClass(), "meAsSrc", new Class[]{destination.getClass(), source.getClass()})) {
+            this.reflectionProcessor.invokeMethod(this.processCustomCopy, "meAsSrc", new Object[]{destination, source});
         } else {
-            return false;
+            if (!this.reflectionProcessor.isMethodExist(this.processCustomCopy.getClass(), "meAsSrc", new Class[]{source.getClass(), destination.getClass()})) {
+                return false;
+            }
+
+            this.reflectionProcessor.invokeMethod(this.processCustomCopy, "meAsSrc", new Object[]{source, destination});
         }
+
         return true;
     }
 
     public void callGlobalCallBack(Object source, Object destination) {
-        if (processCustomCopy != null) {
+        if (this.processCustomCopy != null) {
             Boolean isSuccess = false;
-            if (amIDestination) {
-                isSuccess = callMeAsDst(source, destination);
+            if (this.amIDestination) {
+                isSuccess = this.callMeAsDst(source, destination);
             } else {
-                isSuccess = callMeAsSst(source, destination);
+                isSuccess = this.callMeAsSst(source, destination);
             }
+
             if (!isSuccess) {
-                processCustomCopy.whyNotCalled("Method not found with the parameter " + source.getClass().getSimpleName() + " and " + destination.getClass().getSimpleName());
+                ProcessCustomCopy var10000 = this.processCustomCopy;
+                String var10001 = source.getClass().getSimpleName();
+                var10000.whyNotCalled("Method not found with the parameter " + var10001 + " and " + destination.getClass().getSimpleName());
             }
         }
-    }
 
-    public List<CopySourceDstField> copySourceDstFields = new ArrayList<>();
+    }
 }

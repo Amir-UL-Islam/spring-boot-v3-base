@@ -22,7 +22,6 @@ dependencyManagement {
 dependencies {
     implementation project(':common')
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.2")
-//    implementation 'codemining.deps:com.fasterxml.jackson.annotation:2.11.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

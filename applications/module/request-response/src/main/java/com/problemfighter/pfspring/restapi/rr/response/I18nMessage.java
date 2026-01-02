@@ -1,9 +1,11 @@
 package com.problemfighter.pfspring.restapi.rr.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.io.Serializable;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class I18nMessage {
+@JsonInclude(Include.NON_NULL)
+public class I18nMessage implements Serializable {
     public String text;
     public String key;
 
@@ -32,25 +34,22 @@ public class I18nMessage {
         return this;
     }
 
-
     public I18nMessage setTextToKey(String text) {
-        this.key = textToKey(text);
+        this.key = this.textToKey(text);
         return this;
     }
 
     public String textToKey(String text) {
-        if (text == null || text.isBlank() || text.isEmpty()) {
+        if (text != null && !text.isBlank() && !text.isEmpty()) {
+            text = text.toLowerCase();
+            text = text.replace(" ", ".");
+            return text;
+        } else {
             return null;
         }
-        text = text.toLowerCase();
-        text = text.replace(" ", ".");
-        return text;
     }
 
     public static I18nMessage message(String text) {
-        if (text == null) {
-            return null;
-        }
-        return new I18nMessage(text).setTextToKey(text);
+        return text == null ? null : (new I18nMessage(text)).setTextToKey(text);
     }
 }

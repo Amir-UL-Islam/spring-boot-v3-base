@@ -9,7 +9,8 @@ import java.util.*;
 @Getter
 @Setter
 @Entity
-public class Users {
+@Table(name = "registered_users")
+public class RegisteredUsers {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,7 +35,8 @@ public class Users {
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {
             CascadeType.PERSIST,
-            CascadeType.MERGE
+            CascadeType.MERGE,
+            CascadeType.REFRESH
     })
     @JoinTable(
             name = "user_role",
@@ -42,6 +44,9 @@ public class Users {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
     private Set<Role> roles = new HashSet<>();
+
+    @Version
+    private Long version;
 
     private boolean enabled = true;
 
@@ -51,10 +56,10 @@ public class Users {
 
     private boolean credentialsNonExpired = true;
 
-    public Users() {
+    public RegisteredUsers() {
     }
 
-    public Users(UserAuth auth) {
+    public RegisteredUsers(UserAuth auth) {
         if (auth == null) throw new IllegalArgumentException("User can not be null!");
         this.setId(auth.getId());
         this.firstName = auth.getFirstName();
@@ -112,5 +117,12 @@ public class Users {
     public String getName() {
         if (lastName == null) return firstName;
         return firstName + " " + lastName;
+    }
+
+
+    @PrePersist
+    private void onBasePersist() {
+        if (this.created == null)
+            this.created = new Date();
     }
 }

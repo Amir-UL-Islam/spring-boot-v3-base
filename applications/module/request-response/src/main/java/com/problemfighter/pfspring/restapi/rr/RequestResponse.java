@@ -3,7 +3,6 @@ package com.problemfighter.pfspring.restapi.rr;
 import com.problemfighter.pfspring.restapi.common.DataUtil;
 
 public interface RequestResponse {
-
     default RequestProcessor requestProcessor() {
         return new RequestProcessor();
     }
@@ -12,7 +11,7 @@ public interface RequestResponse {
         return ResponseProcessor.instance();
     }
 
-    default DataUtil dataUtil(){
+    default DataUtil dataUtil() {
         return DataUtil.instance();
     }
 }

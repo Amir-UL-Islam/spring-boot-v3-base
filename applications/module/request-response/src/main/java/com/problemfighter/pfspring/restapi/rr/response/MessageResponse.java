@@ -1,27 +1,25 @@
 package com.problemfighter.pfspring.restapi.rr.response;
 
-
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.LinkedHashMap;
 
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(Include.NON_NULL)
 public class MessageResponse extends ErrorAndBaseData {
     public I18nMessage message = null;
 
     public MessageResponse reason(String key, String explanation) {
-        addErrorReason(key, explanation);
+        this.addErrorReason(key, explanation);
         return this;
     }
 
-
     public MessageResponse reason(LinkedHashMap<String, String> details) {
-        addI18nReason(details);
+        this.addI18nReason(details);
         return this;
     }
 
     public MessageResponse errorMessage(String message) {
-        addErrorMessage(message);
+        this.addErrorMessage(message);
         return this;
     }
 
@@ -36,9 +34,10 @@ public class MessageResponse extends ErrorAndBaseData {
     }
 
     public MessageResponse updateMessageKey(String key) {
-        if (message != null) {
-            message.key = key;
+        if (this.message != null) {
+            this.message.key = key;
         }
+
         return this;
     }
 }

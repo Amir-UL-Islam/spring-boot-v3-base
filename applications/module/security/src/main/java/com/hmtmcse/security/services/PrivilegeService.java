@@ -1,12 +1,13 @@
 package com.hmtmcse.security.services;
 
 import com.hmtmcse.security.exceptions.NotFoundException;
+import com.hmtmcse.security.model.dtos.PrivilegeDTO;
 import com.hmtmcse.security.model.entites.Privilege;
 import com.hmtmcse.security.repositories.PrivilegeRepository;
+import com.problemfighter.pfspring.restapi.rr.RequestResponse;
+import com.problemfighter.pfspring.restapi.rr.response.DetailsResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PrivilegeService {
+public class PrivilegeService implements RequestResponse {
 
     private final PrivilegeRepository privilegeRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PrivilegeService.class);
     private final static String[] BASIC_URLs = {"/api/v1/users/welcome", "/api/v1/users/test-user-role"};
 
     public Privilege findById(Long id) throws NotFoundException {
@@ -86,4 +86,12 @@ public class PrivilegeService {
         }
         return privilegeRepository.saveAll(basicPrivileges);
     }
+
+
+
+    public DetailsResponse<PrivilegeDTO> getPrivilege(Long id) {
+        return responseProcessor().response(privilegeRepository.findById(id), PrivilegeDTO.class);
+    }
+
+
 }

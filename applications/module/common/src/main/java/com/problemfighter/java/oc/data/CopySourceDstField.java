@@ -6,13 +6,12 @@ public class CopySourceDstField {
     public Field source;
     public Field destination;
     public String sourceFieldName;
-
     public Boolean isStrictMapping = true;
     public Boolean isCallback = false;
-
     public Object dataObject;
 
-    public CopySourceDstField() {}
+    public CopySourceDstField() {
+    }
 
     public CopySourceDstField(Field destination, Field source, String sourceFieldName) {
         this.source = source;
@@ -34,5 +33,4 @@ public class CopySourceDstField {
         this.dataObject = dataObject;
         return this;
     }
-
 }

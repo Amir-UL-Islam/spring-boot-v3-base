@@ -1,6 +1,6 @@
 package com.hmtmcse.security.controllers;
 
-import com.hmtmcse.security.model.entites.Users;
+import com.hmtmcse.security.model.entites.RegisteredUsers;
 import com.hmtmcse.security.services.UserServices;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,7 +28,7 @@ public class UsersController {
     @Operation(summary = "Get all user", description = "Get all user")
     @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping("/get-all")
-    public List<Users> getUsers() {
+    public List<RegisteredUsers> getUsers() {
         return service.getUsers();
     }
 
@@ -49,7 +49,7 @@ public class UsersController {
     @Operation(summary = "Get user by id", description = "Get user by id")
     @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping("/get-user-by-id")
-    public Users getUserById(Long id) {
+    public RegisteredUsers getUserById(Long id) {
         return service.findById(id);
     }
 }

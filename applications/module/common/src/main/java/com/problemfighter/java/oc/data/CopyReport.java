@@ -8,7 +8,8 @@ public class CopyReport {
     public String reason;
     public LinkedHashMap<String, CopyReport> nested;
 
-    public CopyReport() {}
+    public CopyReport() {
+    }
 
     public CopyReport(String name, String errorType) {
         this.name = name;
@@ -21,10 +22,11 @@ public class CopyReport {
     }
 
     public CopyReport addNestedReport(CopyReport report) {
-        if (nested == null) {
-            nested = new LinkedHashMap<>();
+        if (this.nested == null) {
+            this.nested = new LinkedHashMap();
         }
-        nested.put(report.name, report);
+
+        this.nested.put(report.name, report);
         return this;
     }
 }

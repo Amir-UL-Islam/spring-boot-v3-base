@@ -2,7 +2,7 @@ package com.hmtmcse.security.services;
 
 import com.hmtmcse.security.exceptions.NotFoundException;
 import com.hmtmcse.security.model.entites.Role;
-import com.hmtmcse.security.model.entites.Users;
+import com.hmtmcse.security.model.entites.RegisteredUsers;
 import com.hmtmcse.security.repositories.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,7 +40,7 @@ public class RoleService {
     }
 
     public void assignRoleToUser(Long userId, Long roleId) throws NotFoundException {
-        Users user = userServices.findById(userId);
+        RegisteredUsers user = userServices.findById(userId);
         Role role = roleRepository.findById(roleId).orElseThrow(() -> new NotFoundException("Role not found"));
         user.getRoles().add(role);
         userServices.save(user);

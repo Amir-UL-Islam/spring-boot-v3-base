@@ -5,6 +5,7 @@ import com.hmtmcse.security.model.dtos.request.Registration;
 import com.hmtmcse.security.model.dtos.response.SuccessfulAuthentication;
 import com.hmtmcse.security.services.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +20,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Transactional
+//    from users
+//    from user_role
+//    from role_privilege
+//    from users
+//    from user_role
+//    from role_privilege
     public SuccessfulAuthentication login(@RequestBody Authenticate dto) {
         return service.login(dto);
     }

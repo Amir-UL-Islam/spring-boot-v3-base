@@ -3,7 +3,7 @@ package com.hmtmcse.security.services;
 import com.hmtmcse.security.model.dtos.request.Authenticate;
 import com.hmtmcse.security.model.dtos.request.Registration;
 import com.hmtmcse.security.model.dtos.response.SuccessfulAuthentication;
-import com.hmtmcse.security.model.entites.Users;
+import com.hmtmcse.security.model.entites.RegisteredUsers;
 import com.hmtmcse.security.model.mappers.UserMappers;
 import com.hmtmcse.security.repositories.UsersRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +23,12 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UsersRepository repository;
     private final JwtTokenService jwtTokenService;
-    private final UserMappers mappers;
+    private final UserMappers userMapper;
     private final RoleService roleService;
 
     @Transactional
     public SuccessfulAuthentication register(Registration dto) {
-        Users newUser = mappers.map(dto);
+        RegisteredUsers newUser = userMapper.map(dto);
         newUser.getRoles().add(roleService.getBasicRole());
         newUser = repository.save(newUser);
 
@@ -51,7 +51,7 @@ public class AuthService {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED, "User account is locked", e);
         }
-        Users user = repository.findByUsername(dto.getUsername()).orElseThrow(
+        RegisteredUsers user = repository.findByUsername(dto.getUsername()).orElseThrow(
                 () -> new UsernameNotFoundException("User not found")
         );
         String token = jwtTokenService.createToken(user);

@@ -8,111 +8,128 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Vector;
 
 public class ReflectionProcessor {
-
     public List<Class<?>> getAllSuperClass(Class<?> klass) {
-        List<Class<?>> classes = new ArrayList<>();
+        List<Class<?>> classes = new ArrayList();
         if (klass != null) {
-            Class<?> superclass = klass.getSuperclass();
-            while (superclass != null) {
+            for(Class<?> superclass = klass.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
                 classes.add(superclass);
-                superclass = superclass.getSuperclass();
             }
         }
+
         return classes;
     }
 
     public List<Class<?>> getAllClass(Class<?> klass) {
         if (klass == null) {
-            return new ArrayList<>();
+            return new ArrayList();
+        } else {
+            List<Class<?>> classes = this.getAllSuperClass(klass);
+            classes.add(klass);
+            return classes;
         }
-        List<Class<?>> classes = getAllSuperClass(klass);
-        classes.add(klass);
-        return classes;
     }
 
     public List<Field> getAllField(Class<?> klass) {
-        List<Field> fields = new ArrayList<>();
+        List<Field> fields = new ArrayList();
         if (klass != null) {
-            List<Class<?>> classes = getAllClass(klass);
-            for (Class<?> pClass : classes) {
+            for(Class<?> pClass : this.getAllClass(klass)) {
                 fields.addAll(Arrays.asList(pClass.getDeclaredFields()));
             }
         }
+
         return fields;
     }
 
     private Field getDeclaredField(Object object, String fieldName) {
-        return getDeclaredField(object.getClass(), fieldName);
+        return this.getDeclaredField(object.getClass(), fieldName);
     }
 
     private Field getDeclaredField(Class<?> klass, String fieldName) {
         try {
             return klass.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException ignore) {
+        } catch (NoSuchFieldException var4) {
+            return null;
         }
-        return null;
     }
 
     private Field getField(Object object, String fieldName) {
         try {
             return object.getClass().getField(fieldName);
-        } catch (NoSuchFieldException ignore) {
+        } catch (NoSuchFieldException var4) {
+            return null;
         }
-        return null;
     }
 
     public Field getFieldFromObject(Object object, String fieldName) {
-        return getFieldFromObject(object.getClass(), fieldName);
+        return this.getFieldFromObject(object.getClass(), fieldName);
     }
 
     public Field getFieldFromObject(Class<?> klass, String fieldName) {
-        Field field = getDeclaredField(klass, fieldName);
+        Field field = this.getDeclaredField(klass, fieldName);
         if (field == null) {
-            field = getField(klass, fieldName);
+            field = this.getField(klass, fieldName);
         }
+
         if (field != null) {
             field.setAccessible(true);
         }
+
         return field;
     }
 
     public Field getAnyFieldFromObject(Object object, String fieldName) {
-        return getAnyFieldFromKlass(object.getClass(), fieldName);
+        return this.getAnyFieldFromKlass(object.getClass(), fieldName);
     }
 
     public Field getAnyFieldFromKlass(Class<?> klass, String fieldName) {
-        Field field = getFieldFromObject(klass, fieldName);
+        Field field = this.getFieldFromObject(klass, fieldName);
         if (field == null) {
-            Class<?> superclass = klass.getSuperclass();
-            while (superclass != null) {
-                field = getDeclaredField(superclass, fieldName);
+            for(Class<?> superclass = klass.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
+                field = this.getDeclaredField(superclass, fieldName);
                 if (field != null) {
                     return field;
                 }
-                superclass = superclass.getSuperclass();
             }
         }
+
         return field;
     }
 
-
     public <D> D newInstance(Class<D> klass) {
         try {
-            return klass.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignore) {
+            return (D)klass.getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException var3) {
+            return null;
         }
-        return null;
     }
 
     public Boolean isPrimitive(Class<?> c) {
-        return c.isPrimitive() || c == String.class || c == Boolean.class || c == Byte.class || c == Short.class || c == Character.class
-                || c == Integer.class || c == Float.class || c == Double.class || c == BigDecimal.class || c == BigInteger.class
-                || c == LocalDate.class || c == LocalDateTime.class || c == Date.class || c == Timestamp.class || c == Long.class;
+        return c.isPrimitive() || c == String.class || c == Boolean.class || c == Byte.class || c == Short.class || c == Character.class || c == Integer.class || c == Float.class || c == Double.class || c == BigDecimal.class || c == BigInteger.class || c == LocalDate.class || c == LocalDateTime.class || c == Date.class || c == Timestamp.class || c == Long.class;
     }
-
 
     public Boolean isList(Class<?> c) {
         return c == List.class || c == Collection.class || c == LinkedList.class || c == ArrayList.class || c == Vector.class || c == Stack.class;
@@ -132,74 +149,72 @@ public class ReflectionProcessor {
 
     public Collection<?> instanceOfList(Class<?> c) {
         if (c == LinkedList.class) {
-            return new LinkedList<>();
+            return new LinkedList();
         } else if (c == Vector.class) {
-            return new Vector<>();
-        } else if (c == Stack.class) {
-            return new Stack<>();
+            return new Vector();
+        } else {
+            return (Collection<?>)(c == Stack.class ? new Stack() : new ArrayList());
         }
-        return new ArrayList<>();
     }
 
     public Queue<?> instanceOfQueue(Class<?> c) {
-        if (c == ArrayDeque.class || c == Deque.class) {
-            return new ArrayDeque<>();
-        }
-        return new PriorityQueue<>();
+        return (Queue<?>)(c != ArrayDeque.class && c != Deque.class ? new PriorityQueue() : new ArrayDeque());
     }
 
     public Set<?> instanceOfSet(Class<?> c) {
-        if (c == TreeSet.class || c == SortedSet.class) {
-            return new TreeSet<>();
-        } else if (c == HashSet.class) {
-            return new HashSet<>();
+        if (c != TreeSet.class && c != SortedSet.class) {
+            return (Set<?>)(c == HashSet.class ? new HashSet() : new LinkedHashSet());
+        } else {
+            return new TreeSet();
         }
-        return new LinkedHashSet<>();
     }
 
     public Map<?, ?> instanceOfMap(Class<?> c) {
         if (c == HashMap.class) {
-            return new HashMap<>();
-        } else if (c == TreeMap.class || c == SortedMap.class) {
-            return new TreeMap<>();
+            return new HashMap();
+        } else {
+            return (Map<?, ?>)(c != TreeMap.class && c != SortedMap.class ? new LinkedHashMap() : new TreeMap());
         }
-        return new LinkedHashMap<>();
     }
 
     public Method getMethod(Class<?> c, String name, Class<?>... parameterTypes) throws NoSuchMethodException {
-      return c.getDeclaredMethod(name, parameterTypes);
+        return c.getDeclaredMethod(name, parameterTypes);
     }
 
     public Boolean isMethodExist(Class<?> c, String name, Class<?>... parameterTypes) {
         try {
-            getMethod(c, name, parameterTypes);
+            this.getMethod(c, name, parameterTypes);
             return true;
-        } catch (NoSuchMethodException ignore) {
+        } catch (NoSuchMethodException var5) {
+            return false;
         }
-        return false;
     }
 
     public Object invokeMethod(Object object, String name, Object... parameterTypes) {
         try {
             int paramLength = parameterTypes.length;
             Class<?>[] classes = new Class[paramLength];
-            for (int i = 0; i < paramLength; i++) {
+
+            for(int i = 0; i < paramLength; ++i) {
                 classes[i] = parameterTypes[i].getClass();
             }
-            Method method = getMethod(object.getClass(), name, classes);
+
+            Method method = this.getMethod(object.getClass(), name, classes);
             if (method != null) {
                 return method.invoke(object, parameterTypes);
             }
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (IllegalAccessException | NoSuchMethodException e) {
+            ((ReflectiveOperationException)e).printStackTrace();
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof RuntimeException) {
-                throw (RuntimeException) e.getCause();
-            } else if (e.getCause() instanceof Error) {
-                throw (Error) e.getCause();
+                throw (RuntimeException)e.getCause();
+            }
+
+            if (e.getCause() instanceof Error) {
+                throw (Error)e.getCause();
             }
         }
+
         return null;
     }
-
 }

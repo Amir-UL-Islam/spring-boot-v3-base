@@ -1,7 +1,7 @@
 package com.hmtmcse.security.services;
 
 import com.hmtmcse.security.model.entites.UserAuth;
-import com.hmtmcse.security.model.entites.Users;
+import com.hmtmcse.security.model.entites.RegisteredUsers;
 import com.hmtmcse.security.repositories.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,15 +23,15 @@ public class UserServices implements UserDetailsService {
 
     }
 
-    public List<Users> getUsers() {
+    public List<RegisteredUsers> getUsers() {
         return repository.findAll();
     }
 
-    public Users findById(Long id) {
+    public RegisteredUsers findById(Long id) {
         return repository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    public void save(Users user) {
+    public void save(RegisteredUsers user) {
         repository.save(user);
     }
 }

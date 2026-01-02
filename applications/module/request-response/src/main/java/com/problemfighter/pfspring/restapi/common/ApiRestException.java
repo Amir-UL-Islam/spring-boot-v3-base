@@ -2,11 +2,7 @@ package com.problemfighter.pfspring.restapi.common;
 
 import com.problemfighter.pfspring.restapi.rr.ResponseProcessor;
 
-/**
- * Created by Touhid Mia on 11/09/2014.
- */
 public class ApiRestException extends RuntimeException {
-
     public Object errorMessage;
 
     public ApiRestException() {
@@ -22,15 +18,21 @@ public class ApiRestException extends RuntimeException {
         return this;
     }
 
+    public ApiRestException errorException(String message) {
+        this.error((Object)ResponseProcessor.errorMessage(message));
+        return this;
+    }
+
     public Object getError() {
-        if (this.errorMessage == null) {
-            return ResponseProcessor.unknownError();
-        }
-        return this.errorMessage;
+        return this.errorMessage == null ? ResponseProcessor.unknownError() : this.errorMessage;
     }
 
     public static void throwException(Object errorMessage) throws ApiRestException {
-        throw new ApiRestException().error(errorMessage);
+        throw (new ApiRestException()).error(errorMessage);
+    }
+
+    public static void notFound(String message) {
+        throwException(ResponseProcessor.notFound(message));
     }
 
     public static void notFound() {
@@ -39,6 +41,10 @@ public class ApiRestException extends RuntimeException {
 
     public static void unauthorized() {
         throwException(ResponseProcessor.unauthorized());
+    }
+
+    public static void unauthorized(String errorMessage) {
+        throwException(ResponseProcessor.unauthorized(errorMessage));
     }
 
     public static void otherError(String errorMessage) {
