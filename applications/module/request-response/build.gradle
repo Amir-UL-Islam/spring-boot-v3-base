@@ -2,12 +2,14 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.1' apply false
+    id 'java-library'
+    id 'maven-publish'
+    id 'org.springframework.boot' version '4.0.1' apply false
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.problemfighter.pfspring.restapi'
-version = '0.0.1-SNAPSHOT'
+group = 'com.hmtmcse.library'
+version = '1.0.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -20,9 +22,14 @@ dependencyManagement {
 }
 
 dependencies {
-    implementation project(':common')
-    implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.2")
+    // Conditional dependency resolution
+    if (findProject(':common') != null) {
+        implementation project(':common')
+    } else {
+        implementation 'com.hmtmcse.library:common:1.0.0-SNAPSHOT'
+    }
 
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.2")
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 }
@@ -33,4 +40,21 @@ test {
 
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs.add("-parameters")
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'request-response'
+
+            pom {
+                name = 'Request Response Library'
+                description = 'REST API request/response handling utilities for Spring Boot'
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }

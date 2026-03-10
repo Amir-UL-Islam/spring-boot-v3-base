@@ -12,15 +12,17 @@ import com.problemfighter.pfspring.restapi.rr.request.RequestData;
 import com.problemfighter.pfspring.restapi.rr.response.BulkErrorData;
 import com.problemfighter.pfspring.restapi.rr.response.BulkErrorValidEntities;
 import com.problemfighter.pfspring.restapi.rr.response.MessageResponse;
+
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 
 public class RequestProcessor {
-    private ObjectCopier objectCopier = new ObjectCopier();
-    private ReflectionProcessor reflectionProcessor;
+    private final ObjectCopier objectCopier = new ObjectCopier();
+    private final ReflectionProcessor reflectionProcessor;
     public static Integer itemPerPage = 15;
     public static String sortField = "id";
     public static Sort.Direction sortOrder;
@@ -28,7 +30,7 @@ public class RequestProcessor {
     public RequestProcessor() {
         this.objectCopier.initCustomProcessor = new InitCustomProcessor() {
             public <S, D> ProcessCustomCopy<S, D> init(Class<?> klass, S source, D destination) {
-                return (ProcessCustomCopy)RestSpringContext.getBean(klass);
+                return (ProcessCustomCopy) RestSpringContext.getBean(klass);
             }
         };
         this.reflectionProcessor = new ReflectionProcessor();
@@ -36,7 +38,7 @@ public class RequestProcessor {
 
     private <D> D copySrcToDst(Object source, D destination) {
         try {
-            return (D)this.objectCopier.copy(source, destination);
+            return (D) this.objectCopier.copy(source, destination);
         } catch (ObjectCopierException e) {
             ApiRestException.otherError(e.getMessage());
             return null;
@@ -45,7 +47,7 @@ public class RequestProcessor {
 
     private <D> D copySrcToDst(Object source, Class<D> destination) {
         try {
-            return (D)this.objectCopier.copy(source, destination);
+            return (D) this.objectCopier.copy(source, destination);
         } catch (ObjectCopierException e) {
             ApiRestException.otherError(e.getMessage());
             return null;
@@ -55,7 +57,7 @@ public class RequestProcessor {
     private <T, O> T getFieldValue(O object, String name, Class<T> type) {
         try {
             Field field = this.reflectionProcessor.getFieldFromObject(object, name);
-            return (T)(field != null && field.getType() == type ? field.get(object) : null);
+            return (T) (field != null && field.getType() == type ? field.get(object) : null);
         } catch (IllegalAccessException var5) {
             return null;
         }
@@ -63,16 +65,16 @@ public class RequestProcessor {
 
     public <D> D copySrcToDstValidate(Object source, Class<D> destination) {
         this.dataValidate(source);
-        return (D)this.copySrcToDst(source, destination);
+        return (D) this.copySrcToDst(source, destination);
     }
 
     public <D> D copySrcToDstValidate(Object source, D destination) {
-        return (D)(this.dataValidate(source) ? this.copySrcToDst(source, destination) : null);
+        return (D) (this.dataValidate(source) ? this.copySrcToDst(source, destination) : null);
     }
 
     public Boolean dataValidate(Object source) {
         LinkedHashMap<String, String> errors = this.objectCopier.validateObject(source);
-        if (errors.size() != 0) {
+        if (!errors.isEmpty()) {
             ApiRestException.throwException(ResponseProcessor.validationError().reason(errors));
             return false;
         } else {
@@ -85,29 +87,29 @@ public class RequestProcessor {
     }
 
     public <D> D process(Object source, Class<D> destination) {
-        return (D)this.copySrcToDstValidate(source, destination);
+        return (D) this.copySrcToDstValidate(source, destination);
     }
 
     public <D> D process(Object source, D destination) {
-        return (D)this.copySrcToDstValidate(source, destination);
+        return (D) this.copySrcToDstValidate(source, destination);
     }
 
     public <D> D process(RequestData<?> requestData, D destination) {
-        return (D)this.copySrcToDstValidate(requestData.getData(), destination);
+        return (D) this.copySrcToDstValidate(requestData.getData(), destination);
     }
 
     public <D> D process(RequestData<?> requestData, Class<D> destination) {
-        return (D)this.copySrcToDstValidate(requestData.getData(), destination);
+        return (D) this.copySrcToDstValidate(requestData.getData(), destination);
     }
 
     public <D, E> BulkErrorValidEntities<D, E> process(RequestBulkData<D> requestData, Class<E> destination) {
         BulkErrorValidEntities<D, E> errorDst = new BulkErrorValidEntities();
 
-        for(D object : requestData.getData()) {
+        for (D object : requestData.getData()) {
             try {
                 errorDst.addToList(this.copySrcToDstValidate(object, destination));
             } catch (ApiRestException e) {
-                MessageResponse messageResponse = (MessageResponse)e.getError();
+                MessageResponse messageResponse = (MessageResponse) e.getError();
                 errorDst.addFailed((new BulkErrorData()).addError(messageResponse.error).addObject(object));
             }
         }
@@ -137,7 +139,7 @@ public class RequestProcessor {
     }
 
     public <O> Long getIdFieldValue(O object) {
-        return (Long)this.getFieldValue(object, "id", Long.class);
+        return (Long) this.getFieldValue(object, "id", Long.class);
     }
 
     public PageRequest paginationOnly(Integer page, Integer size) {

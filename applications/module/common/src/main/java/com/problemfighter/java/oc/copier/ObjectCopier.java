@@ -48,7 +48,7 @@ public class ObjectCopier {
     }
 
     public LinkedHashMap<String, String> validateObject(Object object) {
-        LinkedHashMap<String, String> errors = new LinkedHashMap();
+        LinkedHashMap<String, String> errors = new LinkedHashMap<>();
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
 

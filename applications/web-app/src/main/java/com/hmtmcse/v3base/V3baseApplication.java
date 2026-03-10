@@ -4,7 +4,12 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication(scanBasePackages = {"com.*"})
+@SpringBootApplication(scanBasePackages = {
+        "com.hmtmcse.v3base",      // Main application
+        "com.hmtmcse.module",       // Module management system
+        "com.security.base",        // Security module
+        "com.problemfighter"        // Common utilities
+})
 public class V3baseApplication {
 
     public static void main(String[] args) {

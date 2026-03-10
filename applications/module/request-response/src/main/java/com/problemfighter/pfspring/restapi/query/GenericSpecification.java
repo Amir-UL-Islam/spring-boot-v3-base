@@ -1,5 +1,6 @@
 package com.problemfighter.pfspring.restapi.query;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,15 +11,16 @@ import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
 public class GenericSpecification<T> implements Specification<T> {
+    @Serial
     private static final long serialVersionUID = 1900581010229669687L;
-    private List<SearchCriteria> list = new ArrayList();
+    private final List<SearchCriteria> list = new ArrayList<>();
 
     public void add(SearchCriteria criteria) {
         this.list.add(criteria);
     }
 
     public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-        List<Predicate> predicates = new ArrayList();
+        List<Predicate> predicates = new ArrayList<>();
 
         for(SearchCriteria criteria : this.list) {
             if (criteria.getOperation().equals(SearchOperation.GREATER_THAN)) {

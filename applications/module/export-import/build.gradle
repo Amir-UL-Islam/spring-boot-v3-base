@@ -1,17 +1,26 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.1' apply false
+    id 'java-library'
+    id 'maven-publish'
+    id 'org.springframework.boot' version '4.0.1' apply false
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.hmtmcse.export_import'
-version = '0.0.1-SNAPSHOT'
+group = 'com.hmtmcse.library'
+version = '1.0.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    // Conditional dependency resolution
+    if (findProject(':common') != null) {
+        implementation project(':common')
+    } else {
+        implementation 'com.hmtmcse.library:common:1.0.0-SNAPSHOT'
+    }
+
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
@@ -22,4 +31,21 @@ test {
 
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs.add("-parameters")
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'export-import'
+
+            pom {
+                name = 'Export Import Library'
+                description = 'Data export/import utilities for Spring Boot applications'
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }

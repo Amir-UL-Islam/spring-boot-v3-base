@@ -1,0 +1,22 @@
+package com.security.base.privilege;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+import java.util.Optional;
+
+
+public interface PrivilegeRepository extends JpaRepository<Privilege, Long> {
+
+    boolean existsByNameIgnoreCase(String name);
+
+    Optional<Privilege> findByNameIgnoreCase(String name);
+
+    @Query("SELECT p FROM Privilege p JOIN p.urls u " +
+            "WHERE (u.endpoint = :urlPattern OR :urlPattern LIKE CONCAT(u.endpoint, '/%')) " +
+            "AND LOWER(u.method) = LOWER(:httpMethod)")
+    List<Privilege> findByUrlPatternAndHttpMethod(String urlPattern, String httpMethod);
+
+
+}

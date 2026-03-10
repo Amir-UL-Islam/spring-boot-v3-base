@@ -1,12 +1,27 @@
 == Project Task Index
-* Run the project
-* Setup DB basic config
-** H2
-** MySQL
-* Create Basic controller
-* Setup Swagger
-** Swagger CRUD UI
-** JWT Authentication
-* Configure the Spring Security
-** JWT
-** URL Based ACL
+* Configure database (H2/MySQL)
+* Run `web-app`
+* Enable Swagger UI and OpenAPI docs
+* Configure security (JWT, OAuth login, ACL, 2FA)
+* Build and plug module libraries (`common`, `request-response`, `export-import`, `security`)
+* Use central DTO-Entity mapping (no manual mapping)
+
+== Library Setup (Central Mapping)
+* Add module dependency where needed (example: `security` -> `request-response`)
+* Mark DTOs with `@DataMappingInfo` and optional custom processor
+* Use `CopyInterceptor` only for custom/non-direct field mapping (`meAsSrc`, `meAsDst`)
+* Keep same-name fields auto-mapped by the mapping library
+
+== Swagger UI
+* API docs: `/v3/api-docs`
+* Swagger UI: `/swagger-ui/index.html`
+* Security config allows Swagger endpoints without authentication
+
+== Security (Current Features)
+* JWT authentication (access + refresh token)
+* OAuth-style token endpoint (`/oauth/token`)
+* Google social login (`/authenticateGoogle`)
+* 2FA (TOTP): setup, activate, disable
+* URL-based ACL filter for dynamic permission checks
+* Method-level protection with `@PreAuthorize`
+* Stateless security with CORS support

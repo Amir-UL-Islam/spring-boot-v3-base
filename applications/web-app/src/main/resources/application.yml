@@ -3,71 +3,57 @@ spring:
     name: v3base
 
   datasource:
-    url: "jdbc:mysql://localhost:3306/core_security"
-    username: "root"
-    password: "password"
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-
-  #    hikari:
-  #      maximum-pool-size: 5
-
-
+    url: jdbc:h2:mem:stateless_security
+    username: sa
+    password:
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: create-drop
+    open-in-view: false
     properties:
       hibernate:
-        dialect.storage_engine: innodb
-    open-in-view: false
-  #        format_sql: true
-  #        generate_statistics: true
-
-#  security:
-#    user:
-#      name: admin
-#      password: admin
-  main:
-    banner-mode: off
-
-#logging:
-#  level:
-#    root: DEBUG
-#    org:
-#      hibernate:
-#        SQL: DEBUG
-#        type: TRACE
-#        stat: DEBUG
-#        type.descriptor.sql.BasicBinder: TRACE
-##        transaction: TRACE
-##        internal.tenant: TRACE
-##        internal.Cache: TRACE
-##        internal.jdbc: TRACE
-##        internal.jdbc.select: TRACE
-##        internal.jdbc.update: TRACE
-##        internal.jdbc.resultset: TRACE
-##        internal.jdbc.statement: TRACE
-##        internal.jdbc.connection: TRACE
-##        internal.jdbc.batch: TRACE
-#    spring:
-#      datasource: TRACE
-#      jpa: TRACE
-#      orm: TRACE
-##  logger:
-##    org.hibernate.stat: DEBUG
-##    org.hibernate.type: TRACE
-##    org.hibernate.cache: TRACE
-##    org.hibernate.transaction: TRACE
-##    org.hibernate.engine: TRACE
-##    org.hibernate.event: TRACE
-##    org.hibernate.sql: DEBUG
-##    org.hibernate.jpa: TRACE
-##    org.hibernate.dialect: TRACE
-##    org.springframework.transaction: TRACE
-##    org.springframework.orm.hibernate5: TRACE
-##    org.springframework.jdbc.datasource: TRACE
-##    org.springframework.jdbc.core: TRACE
-##    org.springframework.jdbc.connection: TRACE
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        id:
+          new_generator_mappings: true
+    show-sql: true
+  h2:
+    console:
+      enabled: false
+error:
+  handling:
+    http-status-in-json-response: true
+    exception-logging: NO_LOGGING
+    full-stacktrace-http-statuses: 5xx
+    log-levels:
+      5xx: ERROR
+    http-statuses:
+      org.springframework.security.authorization.AuthorizationDeniedException: unauthorized
+    codes:
+      UsersUsernameUnique: USERS_USERNAME_UNIQUE
+      RoleNameUnique: ROLE_NAME_UNIQUE
+      RoleDescriptionUnique: ROLE_DESCRIPTION_UNIQUE
+      PrivilegeNameUnique: PRIVILEGE_NAME_UNIQUE
+      UrlsEndpointUnique: URLS_ENDPOINT_UNIQUE
+springdoc:
+  pathsToMatch: /api/**, /authenticate, /authenticateGoogle, /refresh-token, /register
+app:
+  baseHost: http://localhost:8800
+  google:
+    client-id: GOOGLE_CLIENT_ID.apps.googleusercontent.com
+    client-secret: GOOGLE_CLIENT_SECRET
 server:
-  port: 9988
+  port: 8800
+
+# Module Management Configuration
+modules:
+  security:
+    enabled: true
+  export-import:
+    enabled: false
+  # Add more module configurations as needed
+
