@@ -20,7 +20,8 @@ dependencyManagement {
 }
 
 dependencies {
-    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation 'jakarta.validation:jakarta.validation-api'
+    implementation 'org.hibernate.validator:hibernate-validator'
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     compileOnly 'org.projectlombok:lombok'

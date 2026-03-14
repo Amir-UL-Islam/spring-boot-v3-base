@@ -19,6 +19,10 @@ import java.util.LinkedHashMap;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.Validator;
 
 public class RequestProcessor {
     private final ObjectCopier objectCopier = new ObjectCopier();
@@ -73,7 +77,20 @@ public class RequestProcessor {
     }
 
     public Boolean dataValidate(Object source) {
-        LinkedHashMap<String, String> errors = this.objectCopier.validateObject(source);
+        LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+        Validator validator = RestSpringContext.getBean(Validator.class);
+        if (validator != null && validator.supports(source.getClass())) {
+            BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(source, source.getClass().getSimpleName());
+            validator.validate(source, bindingResult);
+            for (FieldError fieldError : bindingResult.getFieldErrors()) {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            }
+            for (ObjectError globalError : bindingResult.getGlobalErrors()) {
+                errors.put(globalError.getObjectName(), globalError.getDefaultMessage());
+            }
+        } else {
+            errors = this.objectCopier.validateObject(source);
+        }
         if (!errors.isEmpty()) {
             ApiRestException.throwException(ResponseProcessor.validationError().reason(errors));
             return false;

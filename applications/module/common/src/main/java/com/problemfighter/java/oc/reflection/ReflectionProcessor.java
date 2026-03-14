@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +36,7 @@ public class ReflectionProcessor {
     public List<Class<?>> getAllSuperClass(Class<?> klass) {
         List<Class<?>> classes = new ArrayList();
         if (klass != null) {
-            for(Class<?> superclass = klass.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
+            for (Class<?> superclass = klass.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
                 classes.add(superclass);
             }
         }
@@ -56,7 +57,7 @@ public class ReflectionProcessor {
     public List<Field> getAllField(Class<?> klass) {
         List<Field> fields = new ArrayList();
         if (klass != null) {
-            for(Class<?> pClass : this.getAllClass(klass)) {
+            for (Class<?> pClass : this.getAllClass(klass)) {
                 fields.addAll(Arrays.asList(pClass.getDeclaredFields()));
             }
         }
@@ -108,7 +109,7 @@ public class ReflectionProcessor {
     public Field getAnyFieldFromKlass(Class<?> klass, String fieldName) {
         Field field = this.getFieldFromObject(klass, fieldName);
         if (field == null) {
-            for(Class<?> superclass = klass.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
+            for (Class<?> superclass = klass.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
                 field = this.getDeclaredField(superclass, fieldName);
                 if (field != null) {
                     return field;
@@ -121,14 +122,31 @@ public class ReflectionProcessor {
 
     public <D> D newInstance(Class<D> klass) {
         try {
-            return (D)klass.getDeclaredConstructor().newInstance();
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException var3) {
+            return (D) klass.getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
+                 InstantiationException var3) {
             return null;
         }
     }
 
     public Boolean isPrimitive(Class<?> c) {
-        return c.isPrimitive() || c == String.class || c == Boolean.class || c == Byte.class || c == Short.class || c == Character.class || c == Integer.class || c == Float.class || c == Double.class || c == BigDecimal.class || c == BigInteger.class || c == LocalDate.class || c == LocalDateTime.class || c == Date.class || c == Timestamp.class || c == Long.class;
+        return c.isPrimitive() ||
+                c == String.class ||
+                c == Boolean.class ||
+                c == Byte.class ||
+                c == Short.class ||
+                c == Character.class ||
+                c == Integer.class ||
+                c == Float.class ||
+                c == Double.class ||
+                c == BigDecimal.class ||
+                c == BigInteger.class ||
+                c == LocalDate.class ||
+                c == LocalDateTime.class ||
+                c == Date.class ||
+                c == OffsetDateTime.class ||
+                c == Timestamp.class ||
+                c == Long.class;
     }
 
     public Boolean isList(Class<?> c) {
@@ -149,21 +167,21 @@ public class ReflectionProcessor {
 
     public Collection<?> instanceOfList(Class<?> c) {
         if (c == LinkedList.class) {
-            return new LinkedList();
+            return new LinkedList<>();
         } else if (c == Vector.class) {
-            return new Vector();
+            return new Vector<>();
         } else {
-            return (Collection<?>)(c == Stack.class ? new Stack() : new ArrayList());
+            return (Collection<?>) (c == Stack.class ? new Stack<>() : new ArrayList());
         }
     }
 
     public Queue<?> instanceOfQueue(Class<?> c) {
-        return (Queue<?>)(c != ArrayDeque.class && c != Deque.class ? new PriorityQueue() : new ArrayDeque());
+        return (Queue<?>) (c != ArrayDeque.class && c != Deque.class ? new PriorityQueue() : new ArrayDeque());
     }
 
     public Set<?> instanceOfSet(Class<?> c) {
         if (c != TreeSet.class && c != SortedSet.class) {
-            return (Set<?>)(c == HashSet.class ? new HashSet() : new LinkedHashSet());
+            return (Set<?>) (c == HashSet.class ? new HashSet() : new LinkedHashSet());
         } else {
             return new TreeSet();
         }
@@ -173,7 +191,7 @@ public class ReflectionProcessor {
         if (c == HashMap.class) {
             return new HashMap();
         } else {
-            return (Map<?, ?>)(c != TreeMap.class && c != SortedMap.class ? new LinkedHashMap() : new TreeMap());
+            return (Map<?, ?>) (c != TreeMap.class && c != SortedMap.class ? new LinkedHashMap() : new TreeMap());
         }
     }
 
@@ -195,7 +213,7 @@ public class ReflectionProcessor {
             int paramLength = parameterTypes.length;
             Class<?>[] classes = new Class[paramLength];
 
-            for(int i = 0; i < paramLength; ++i) {
+            for (int i = 0; i < paramLength; ++i) {
                 classes[i] = parameterTypes[i].getClass();
             }
 
@@ -204,14 +222,14 @@ public class ReflectionProcessor {
                 return method.invoke(object, parameterTypes);
             }
         } catch (IllegalAccessException | NoSuchMethodException e) {
-            ((ReflectiveOperationException)e).printStackTrace();
+            ((ReflectiveOperationException) e).printStackTrace();
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof RuntimeException) {
-                throw (RuntimeException)e.getCause();
+                throw (RuntimeException) e.getCause();
             }
 
             if (e.getCause() instanceof Error) {
-                throw (Error)e.getCause();
+                throw (Error) e.getCause();
             }
         }
 

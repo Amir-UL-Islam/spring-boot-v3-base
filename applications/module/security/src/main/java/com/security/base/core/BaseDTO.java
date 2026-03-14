@@ -10,8 +10,8 @@ import java.time.OffsetDateTime;
 @Setter
 public class BaseDTO implements Serializable {
     private Long id;
-    private OffsetDateTime createdAt;
-    private OffsetDateTime updatedAt;
+    private OffsetDateTime createDate;
+    private OffsetDateTime updateDate;
     private String createdBy;
     private String updatedBy;
     private String uuid;

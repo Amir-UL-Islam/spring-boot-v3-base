@@ -11,6 +11,7 @@ import com.problemfighter.java.oc.data.CopyReportError;
 import com.problemfighter.java.oc.data.CopySourceDstField;
 import com.problemfighter.java.oc.data.ObjectCopierInfoDetails;
 import com.problemfighter.java.oc.reflection.ReflectionProcessor;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,11 +20,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import javax.validation.ConstraintViolation;
-import javax.validation.Path;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Path;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 
 public class ObjectCopier {
     private ReflectionProcessor reflectionProcessor = new ReflectionProcessor();
@@ -38,7 +40,7 @@ public class ObjectCopier {
         if (nestedKey == null) {
             this.errorReports.put(name, new CopyReport(name, errorType));
         } else if (this.errorReports.get(nestedKey) != null) {
-            ((CopyReport)this.errorReports.get(nestedKey)).addNestedReport(new CopyReport(name, errorType));
+            ((CopyReport) this.errorReports.get(nestedKey)).addNestedReport(new CopyReport(name, errorType));
         }
 
     }
@@ -52,8 +54,8 @@ public class ObjectCopier {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
 
-        for(ConstraintViolation<Object> violation : validator.validate(object, new Class[0])) {
-            for(Path.Node node : violation.getPropertyPath()) {
+        for (ConstraintViolation<Object> violation : validator.validate(object, new Class[0])) {
+            for (Path.Node node : violation.getPropertyPath()) {
                 errors.put(node.getName(), violation.getMessage());
             }
         }
@@ -81,19 +83,19 @@ public class ObjectCopier {
     }
 
     private Boolean isFieldCustomCall(Field field) {
-        return this.isDataMapperAnnotationAvailable(field) ? ((DataMapping)field.getAnnotation(DataMapping.class)).customProcess() : false;
+        return this.isDataMapperAnnotationAvailable(field) ? ((DataMapping) field.getAnnotation(DataMapping.class)).customProcess() : false;
     }
 
     private String getSourceFieldName(Field field, Boolean isStrict) {
         if (this.isDataMapperAnnotationAvailable(field)) {
-            return ((DataMapping)field.getAnnotation(DataMapping.class)).source();
+            return ((DataMapping) field.getAnnotation(DataMapping.class)).source();
         } else {
             return !isStrict ? field.getName() : null;
         }
     }
 
     private Boolean isDataMapperAnnotationAvailable(List<Field> fields) {
-        for(Field field : fields) {
+        for (Field field : fields) {
             if (this.isDataMapperAnnotationAvailable(field)) {
                 return true;
             }
@@ -103,19 +105,19 @@ public class ObjectCopier {
     }
 
     private Boolean isDataMappingInfoAnnotation(Class<?> klass) {
-        return klass.isAnnotationPresent(DataMappingInfo.class) ? true : false;
+        return klass.isAnnotationPresent(DataMappingInfo.class);
     }
 
     private Boolean isStrictMapping(Class<?> klass) {
-        return this.isDataMappingInfoAnnotation(klass) ? ((DataMappingInfo)klass.getAnnotation(DataMappingInfo.class)).isStrict() : OCConstant.isStrictCopy;
+        return this.isDataMappingInfoAnnotation(klass) ? ((DataMappingInfo) klass.getAnnotation(DataMappingInfo.class)).isStrict() : OCConstant.isStrictCopy;
     }
 
     private String copierDefaultName(Class<?> klass) {
-        return this.isDataMappingInfoAnnotation(klass) ? ((DataMappingInfo)klass.getAnnotation(DataMappingInfo.class)).name() : "anonymous";
+        return this.isDataMappingInfoAnnotation(klass) ? ((DataMappingInfo) klass.getAnnotation(DataMappingInfo.class)).name() : "anonymous";
     }
 
     private Class<?> customProcessor(Class<?> klass) {
-        return this.isDataMappingInfoAnnotation(klass) ? ((DataMappingInfo)klass.getAnnotation(DataMappingInfo.class)).customProcessor() : null;
+        return this.isDataMappingInfoAnnotation(klass) ? ((DataMappingInfo) klass.getAnnotation(DataMappingInfo.class)).customProcessor() : null;
     }
 
     private <S, D> ProcessCustomCopy<S, D> initCustomProcessor(Object object, S sourceObject, D destinationObject) {
@@ -125,7 +127,7 @@ public class ObjectCopier {
             if (this.initCustomProcessor != null) {
                 customCopy = this.initCustomProcessor.init(callbackClass, sourceObject, destinationObject);
             } else {
-                customCopy = (ProcessCustomCopy)this.reflectionProcessor.newInstance(callbackClass);
+                customCopy = (ProcessCustomCopy) this.reflectionProcessor.newInstance(callbackClass);
             }
 
             return customCopy;
@@ -135,7 +137,7 @@ public class ObjectCopier {
     }
 
     private <S, D> ObjectCopierInfoDetails<?, ?> processInfo(Object object, S sourceObject, D destinationObject) {
-        ObjectCopierInfoDetails<S, D> objectCopierInfo = new ObjectCopierInfoDetails();
+        ObjectCopierInfoDetails<S, D> objectCopierInfo = new ObjectCopierInfoDetails<>();
         objectCopierInfo.isStrictMapping = this.isStrictMapping(object.getClass());
         objectCopierInfo.mappingClassName = this.copierDefaultName(object.getClass());
         objectCopierInfo.processCustomCopy = this.initCustomProcessor(object, sourceObject, destinationObject);
@@ -169,7 +171,7 @@ public class ObjectCopier {
     private List<CopySourceDstField> dstAnnotatedNotSrc(List<Field> dstFields, Object dataObject, String nestedKey, ObjectCopierInfoDetails objectCopierInfoDetails) {
         List<CopySourceDstField> list = new ArrayList();
 
-        for(Field field : dstFields) {
+        for (Field field : dstFields) {
             CopySourceDstField copySourceDstField = new CopySourceDstField();
             copySourceDstField.setDataObject(dataObject);
             copySourceDstField.setDestination(field);
@@ -186,7 +188,7 @@ public class ObjectCopier {
     private List<CopySourceDstField> srcAnnotatedNotDst(List<Field> srcFields, Object dataObject, String nestedKey, ObjectCopierInfoDetails objectCopierInfoDetails) {
         List<CopySourceDstField> list = new ArrayList();
 
-        for(Field field : srcFields) {
+        for (Field field : srcFields) {
             CopySourceDstField copySourceDstField = new CopySourceDstField();
             copySourceDstField.setDataObject(dataObject);
             copySourceDstField.setSource(field);
@@ -233,10 +235,10 @@ public class ObjectCopier {
 
     private Object processMap(Object sourceObject, Class<?> destinationProperty) throws IllegalAccessException, ObjectCopierException {
         if (sourceObject != null && destinationProperty != null) {
-            Map<?, ?> map = (Map)sourceObject;
+            Map<?, ?> map = (Map) sourceObject;
             Map response = this.reflectionProcessor.instanceOfMap(destinationProperty);
 
-            for(Map.Entry<?, ?> entry : map.entrySet()) {
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
                 response.put(this.processAndGetValue(entry.getKey(), this.getObjectNewInstance(entry.getKey()), entry.getKey().getClass()), this.processAndGetValue(entry.getValue(), this.getObjectNewInstance(entry.getValue()), entry.getValue().getClass()));
             }
 
@@ -248,10 +250,10 @@ public class ObjectCopier {
 
     private Object processSet(Object sourceObject, Class<?> destinationProperty) throws ObjectCopierException, IllegalAccessException {
         if (sourceObject != null && destinationProperty != null) {
-            Set<?> list = (Set)sourceObject;
+            Set<?> list = (Set) sourceObject;
             Set response = this.reflectionProcessor.instanceOfSet(destinationProperty);
 
-            for(Object data : list) {
+            for (Object data : list) {
                 if (data != null) {
                     response.add(this.processAndGetValue(data, this.getObjectNewInstance(data), data.getClass()));
                 }
@@ -269,10 +271,10 @@ public class ObjectCopier {
 
     private Object processQueue(Object sourceObject, Class<?> destinationProperty) throws ObjectCopierException, IllegalAccessException {
         if (sourceObject != null && destinationProperty != null) {
-            Queue<?> list = (Queue)sourceObject;
+            Queue<?> list = (Queue) sourceObject;
             Queue response = this.reflectionProcessor.instanceOfQueue(destinationProperty);
 
-            for(Object data : list) {
+            for (Object data : list) {
                 if (data != null) {
                     response.add(this.processAndGetValue(data, this.getObjectNewInstance(data), data.getClass()));
                 }
@@ -290,10 +292,10 @@ public class ObjectCopier {
 
     private Object processList(Object sourceObject, Class<?> destinationProperty) throws IllegalAccessException, ObjectCopierException {
         if (sourceObject != null && destinationProperty != null) {
-            Collection<?> list = (Collection)sourceObject;
+            Collection<?> list = (Collection) sourceObject;
             Collection response = this.reflectionProcessor.instanceOfList(destinationProperty);
 
-            for(Object data : list) {
+            for (Object data : list) {
                 if (data != null) {
                     response.add(this.processAndGetValue(data, this.getObjectNewInstance(data), data.getClass()));
                 }
@@ -353,7 +355,7 @@ public class ObjectCopier {
                 ObjectCopierInfoDetails<?, ?> details = this.processDetailsInfo(source, destination, nestedKey);
                 details.callGlobalCallBack(source, destination);
 
-                for(CopySourceDstField copySourceDstField : details.copySourceDstFields) {
+                for (CopySourceDstField copySourceDstField : details.copySourceDstFields) {
                     Object sourceValue = this.getFieldValue(source, copySourceDstField.source);
                     Object destinationValue = this.getFieldValueOrObject(destination, copySourceDstField.destination);
                     copySourceDstField.destination.set(destination, this.processAndGetValue(sourceValue, destinationValue, copySourceDstField.destination.getType()));
@@ -370,15 +372,15 @@ public class ObjectCopier {
     }
 
     private <S, D> D processCopy(S source, Class<D> klass, String nestedKey) throws ObjectCopierException {
-        D toInstance = (D)this.reflectionProcessor.newInstance(klass);
-        return (D)this.processCopy(source, toInstance, nestedKey);
+        D toInstance = (D) this.reflectionProcessor.newInstance(klass);
+        return (D) this.processCopy(source, toInstance, nestedKey);
     }
 
     public <S, D> D copy(S source, D destination) throws ObjectCopierException {
-        return (D)this.processCopy(source, destination, (String)null);
+        return (D) this.processCopy(source, destination, (String) null);
     }
 
     public <S, D> D copy(S source, Class<D> destination) throws ObjectCopierException {
-        return (D)this.processCopy(source, destination, (String)null);
+        return (D) this.processCopy(source, destination, (String) null);
     }
 }

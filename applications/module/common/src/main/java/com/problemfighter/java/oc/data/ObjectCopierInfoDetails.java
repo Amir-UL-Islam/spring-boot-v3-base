@@ -11,7 +11,7 @@ public class ObjectCopierInfoDetails<S, D> {
     public ProcessCustomCopy<Object, Object> processCustomCopy;
     public String mappingClassName;
     private ReflectionProcessor reflectionProcessor = new ReflectionProcessor();
-    public List<CopySourceDstField> copySourceDstFields = new ArrayList();
+    public List<CopySourceDstField> copySourceDstFields = new ArrayList<>();
 
     public Boolean callMeAsDst(Object source, Object destination) {
         if (this.reflectionProcessor.isMethodExist(this.processCustomCopy.getClass(), "meAsDst", new Class[]{destination.getClass(), source.getClass()})) {
@@ -51,7 +51,7 @@ public class ObjectCopierInfoDetails<S, D> {
             }
 
             if (!isSuccess) {
-                ProcessCustomCopy var10000 = this.processCustomCopy;
+                ProcessCustomCopy<Object, Object> var10000 = this.processCustomCopy;
                 String var10001 = source.getClass().getSimpleName();
                 var10000.whyNotCalled("Method not found with the parameter " + var10001 + " and " + destination.getClass().getSimpleName());
             }
