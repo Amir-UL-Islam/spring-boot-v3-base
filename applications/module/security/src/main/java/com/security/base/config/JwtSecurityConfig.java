@@ -2,9 +2,9 @@ package com.security.base.config;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-import com.security.base.security.jwt.CustomUserDetailsService;
-import com.security.base.security.filters.ACLFilter;
-import com.security.base.security.interceptor.CustomAccessDeniedHandler;
+import com.security.base.core.security.jwt.CustomUserDetailsService;
+import com.security.base.core.security.filters.ACLFilter;
+import com.security.base.core.security.interceptor.CustomAccessDeniedHandler;
 
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;

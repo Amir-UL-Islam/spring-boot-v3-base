@@ -49,7 +49,7 @@ public class ModuleService {
      * Register a single module
      */
     @Transactional
-    public Module registerModule(ModuleMetadata metadata) {
+    public void registerModule(ModuleMetadata metadata) {
         System.out.println("Registering module: " + metadata.getModuleId() + " v" + metadata.getVersion());
 
         Module module = new Module();
@@ -114,7 +114,6 @@ public class ModuleService {
             startModule(module);
         }
 
-        return module;
     }
 
     /**

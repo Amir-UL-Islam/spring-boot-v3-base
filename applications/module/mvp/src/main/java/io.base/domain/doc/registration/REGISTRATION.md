@@ -1,0 +1,33 @@
+- Consumer Registration Input fields:
+    - Parent Name(Full Name)
+    - Mobile Number (Need OTP verification)
+    - Password (By default the phone number will be the password, but the user can change it after registration)
+    - Confirm Password
+    - Relationship with the patient (FATHER, MOTHER, SON, DAUGHTER, OTHER)
+
+- Hospital Registration Input fields:
+    - Hospital Name
+    - Hospital Email
+    - Hospital Address
+    - Hospital Location (Latitude and Longitude)
+    - Hospital Contact Number
+    - Hospital Type (Government, Private, NGO)
+    - Hospital License Number
+    - Hospital License Expiry Date
+    - Is NICU Available (Yes/No)
+    - Number of Beds Available (NICU)
+
+- Ambulance Input fields:
+    - Registration Number (Unique Identifier for each ambulance)
+    - Owner Name (Full Name)
+    - Ownship Type (Government, Private, NGO)
+    - Contact Number (OTP verification required)
+    - Service Area (Dhaka, Sylhet, etc. Division-wise)
+    - Active Status (Active/Inactive)
+
+    - Add Ambulance Details:
+        - Vehicle Name (Toyota, Honda, etc.)
+        - Vehicle Picture (Image of the ambulance)
+        - Is NICU/ICU Available (Yes/No)
+        - Service Area (Dhaka, Sylhet, etc. Division-wise)
+        - Active Status (Active/Inactive)

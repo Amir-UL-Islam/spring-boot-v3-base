@@ -29,7 +29,7 @@ public class ModuleManagementAutoConfiguration {
     public ApplicationListener<ApplicationReadyEvent> moduleDiscoveryListener(ModuleService moduleService) {
         return event -> {
             System.out.println("\n========================================");
-            System.out.println("  Module Management System Starting");
+            System.out.println("  Module Management System Starting ");
             System.out.println("========================================\n");
 
             moduleService.discoverAndRegisterModules();
