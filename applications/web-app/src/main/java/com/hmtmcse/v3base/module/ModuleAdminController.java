@@ -5,6 +5,7 @@ import com.hmtmcse.module.service.ModuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +20,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/modules")
 @Tag(name = "Module Management", description = "Manage system modules (Odoo-style)")
+@RequiredArgsConstructor
 public class ModuleAdminController {
 
-    @Autowired
-    private ModuleService moduleService;
+    private final ModuleService moduleService;
 
     @GetMapping
     @Operation(summary = "List all modules", description = "Get all installed modules with their status")
@@ -56,9 +57,9 @@ public class ModuleAdminController {
 
     @PostMapping("/{moduleId}/enable")
     @Operation(
-        summary = "Enable module",
-        description = "Enable and start a module (requires MODULE_ADMIN privilege)",
-        security = @SecurityRequirement(name = "Bearer Authentication")
+            summary = "Enable module",
+            description = "Enable and start a module (requires MODULE_ADMIN privilege)",
+            security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<MessageResponse> enableModule(@PathVariable String moduleId) {
         try {
@@ -71,9 +72,9 @@ public class ModuleAdminController {
 
     @PostMapping("/{moduleId}/disable")
     @Operation(
-        summary = "Disable module",
-        description = "Disable and stop a module (requires MODULE_ADMIN privilege)",
-        security = @SecurityRequirement(name = "Bearer Authentication")
+            summary = "Disable module",
+            description = "Disable and stop a module (requires MODULE_ADMIN privilege)",
+            security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<MessageResponse> disableModule(@PathVariable String moduleId) {
         try {
@@ -88,9 +89,9 @@ public class ModuleAdminController {
 
     @PostMapping("/refresh")
     @Operation(
-        summary = "Refresh module list",
-        description = "Re-discover modules from classpath (requires MODULE_ADMIN privilege)",
-        security = @SecurityRequirement(name = "Bearer Authentication")
+            summary = "Refresh module list",
+            description = "Re-discover modules from classpath (requires MODULE_ADMIN privilege)",
+            security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<MessageResponse> refreshModules() {
         try {

@@ -10,7 +10,7 @@ public class ObjectCopierInfoDetails<S, D> {
     public Boolean amIDestination = true;
     public ProcessCustomCopy<Object, Object> processCustomCopy;
     public String mappingClassName;
-    private ReflectionProcessor reflectionProcessor = new ReflectionProcessor();
+    private final ReflectionProcessor reflectionProcessor = new ReflectionProcessor();
     public List<CopySourceDstField> copySourceDstFields = new ArrayList<>();
 
     public Boolean callMeAsDst(Object source, Object destination) {

@@ -3,6 +3,7 @@ package com.security.base.core.privilege.controller;
 import com.security.base.core.privilege.model.dto.PrivilegeDTO;
 import com.security.base.core.privilege.service.implmentation.PrivilegeService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(value = "/api/privileges", produces = MediaType.APPLICATION_JSON_VALUE)
 //@PreAuthorize("hasAuthority('" + UserRoles.ADMIN + "')")
 //@SecurityRequirement(name = "oauth2-password")
+@Tag(name = "Privilege", description = "APIs for managing user privileges and their associated URLs")
 public class PrivilegeController {
 
     private final PrivilegeService privilegeService;

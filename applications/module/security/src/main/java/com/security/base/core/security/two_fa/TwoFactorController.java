@@ -5,6 +5,8 @@ import com.security.base.core.users.repository.UsersRepository;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/2fa")
 @PreAuthorize("isAuthenticated()")
+@Tag(name = "Two-Factor Authentication", description = "APIs for managing two-factor authentication setup and activation")
 public class TwoFactorController {
 
     private final UsersRepository usersRepository;

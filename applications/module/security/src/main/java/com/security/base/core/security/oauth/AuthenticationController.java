@@ -8,6 +8,7 @@ import com.security.base.core.security.jwt.RefreshTokenRequest;
 import com.security.base.core.security.two_fa.TwoFactorService;
 import com.security.base.core.users.model.entity.Users;
 import com.security.base.core.users.repository.UsersRepository;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import java.time.Duration;
@@ -37,6 +38,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @Slf4j
+@Tag(name = "Authentication", description = "APIs for user authentication and token management")
 public class AuthenticationController {
 
     private final AuthenticationProvider authenticationProvider;

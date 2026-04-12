@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/api/user", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "User", description = "APIs for managing users and their associated roles")
 //@PreAuthorize("hasAnyAuthority('" + UserRoles.ADMIN + "', '" + UserRoles.USER + "')")
 //@SecurityRequirement(name = "bearer-jwt")
 public class UsersController {

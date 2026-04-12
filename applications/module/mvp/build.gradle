@@ -40,9 +40,16 @@ dependencies {
         implementation 'com.hmtmcse.library:request-response:1.0.0-SNAPSHOT'
     }
 
+    implementation project(':security')
+    // Required because mvp compiles against Users, which implements UserDetails.
+    implementation('org.springframework.security:spring-security-core')
+
+    implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0')
+
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-validation')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly('com.h2database:h2')
     compileOnly('org.projectlombok:lombok')
     annotationProcessor('org.projectlombok:lombok')

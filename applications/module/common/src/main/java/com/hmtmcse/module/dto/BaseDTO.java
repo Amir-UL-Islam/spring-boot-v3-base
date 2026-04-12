@@ -1,4 +1,4 @@
-package com.security.base.core;
+package com.hmtmcse.module.dto;
 
 import lombok.Getter;
 import lombok.Setter;

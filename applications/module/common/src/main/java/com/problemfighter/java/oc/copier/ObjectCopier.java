@@ -169,7 +169,7 @@ public class ObjectCopier {
     }
 
     private List<CopySourceDstField> dstAnnotatedNotSrc(List<Field> dstFields, Object dataObject, String nestedKey, ObjectCopierInfoDetails objectCopierInfoDetails) {
-        List<CopySourceDstField> list = new ArrayList();
+        List<CopySourceDstField> list = new ArrayList<>();
 
         for (Field field : dstFields) {
             CopySourceDstField copySourceDstField = new CopySourceDstField();
@@ -220,17 +220,15 @@ public class ObjectCopier {
                     objectCopierInfoDetails.copySourceDstFields = this.srcDstNotAnnotated(toKlassFields, sourceObject, nestedKey, objectCopierInfoDetails);
                 }
 
-                return objectCopierInfoDetails;
             } else {
                 objectCopierInfoDetails = this.processInfo(sourceObject, sourceObject, destinationObject);
                 objectCopierInfoDetails.amIDestination = false;
                 objectCopierInfoDetails.copySourceDstFields = this.srcAnnotatedNotDst(fromObjectFields, destinationObject, nestedKey, objectCopierInfoDetails);
-                return objectCopierInfoDetails;
             }
         } else {
             objectCopierInfoDetails.copySourceDstFields = this.dstAnnotatedNotSrc(toKlassFields, sourceObject, nestedKey, objectCopierInfoDetails);
-            return objectCopierInfoDetails;
         }
+        return objectCopierInfoDetails;
     }
 
     private Object processMap(Object sourceObject, Class<?> destinationProperty) throws IllegalAccessException, ObjectCopierException {

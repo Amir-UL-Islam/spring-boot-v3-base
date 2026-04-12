@@ -1,5 +1,6 @@
 package com.security.base.core.security.oauth;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
+@Tag(name = "User Registration", description = "APIs for user registration and account management")
 public class UserRegistrationController {
 
     private final RegistrationService registrationService;

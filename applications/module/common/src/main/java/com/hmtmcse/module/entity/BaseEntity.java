@@ -1,4 +1,4 @@
-package com.security.base.core;
+package com.hmtmcse.module.entity;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;

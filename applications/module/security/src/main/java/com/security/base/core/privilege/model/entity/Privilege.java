@@ -1,6 +1,6 @@
 package com.security.base.core.privilege.model.entity;
 
-import com.security.base.core.BaseEntity;
+import com.hmtmcse.module.entity.BaseEntity;
 import com.security.base.core.role.model.entity.Role;
 import com.security.base.core.urls.model.entity.Url;
 import com.problemfighter.pfspring.restapi.inter.model.RestEntity;

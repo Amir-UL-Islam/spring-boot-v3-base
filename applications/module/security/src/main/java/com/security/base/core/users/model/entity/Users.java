@@ -1,6 +1,6 @@
 package com.security.base.core.users.model.entity;
 
-import com.security.base.core.BaseEntity;
+import com.hmtmcse.module.entity.BaseEntity;
 import com.security.base.core.role.model.entity.Role;
 import com.problemfighter.pfspring.restapi.inter.model.RestEntity;
 import jakarta.persistence.Column;

@@ -1,4 +1,4 @@
-- Consumer Registration Input fields:
+- Consumer Registration(User) Input fields:
     - Parent Name(Full Name)
     - Mobile Number (Need OTP verification)
     - Password (By default the phone number will be the password, but the user can change it after registration)
@@ -16,6 +16,18 @@
     - Hospital License Expiry Date
     - Is NICU Available (Yes/No)
     - Number of Beds Available (NICU)
+      - Add NICU Details:
+        - Bed Number (Unique Identifier for each bed)
+        - Is Ventilator Available (Yes/No)
+        - Service Area (Dhaka, Sylhet, etc. Division-wise)
+        - Active Status (Active/Inactive)
+          - Discharge Patient:
+            - Bed Number (Unique Identifier for each bed)
+            - Discharge Date
+            - Discharge Time
+            - Discharge Summary (Text field for notes on the patient's condition and treatment)
+            - Is Varified Patient (Yes/No)
+            - User ID (Unique Identifier for the patient being discharged)
 
 - Ambulance Input fields:
     - Registration Number (Unique Identifier for each ambulance)

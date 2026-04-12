@@ -1,6 +1,6 @@
 package com.security.base.core.urls.model.mapper;
 
-import com.security.base.core.BaseEntity;
+import com.hmtmcse.module.entity.BaseEntity;
 import com.security.base.core.privilege.model.entity.Privilege;
 import com.security.base.core.privilege.repository.PrivilegeRepository;
 import com.security.base.core.urls.model.dto.UrlDTO;

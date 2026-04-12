@@ -2,7 +2,7 @@ package com.security.base.core.role.model.dto;
 
 import com.problemfighter.java.oc.annotation.DataMappingInfo;
 import com.problemfighter.pfspring.restapi.inter.model.RestDTO;
-import com.security.base.core.BaseDTO;
+import com.hmtmcse.module.dto.BaseDTO;
 import com.security.base.core.role.RoleDescriptionUnique;
 import com.security.base.core.role.model.mapper.RoleInterceptor;
 import com.security.base.core.role.RoleNameUnique;

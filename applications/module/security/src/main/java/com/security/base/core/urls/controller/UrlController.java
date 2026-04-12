@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/api/url", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "URLs", description = "APIs for managing URLs and their associated privileges")
 //@PreAuthorize("hasAuthority('" + UserRoles.ADMIN + "')")
 //@SecurityRequirement(name = "bearer-jwt")
 public class UrlController {

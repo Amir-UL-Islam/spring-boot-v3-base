@@ -2,7 +2,7 @@ package com.security.base.core.users.model.dto;
 
 import com.problemfighter.java.oc.annotation.DataMappingInfo;
 import com.problemfighter.pfspring.restapi.inter.model.RestDTO;
-import com.security.base.core.BaseDTO;
+import com.hmtmcse.module.dto.BaseDTO;
 import com.security.base.core.users.model.mapper.UsersInterceptor;
 import com.security.base.core.users.UsersUsernameUnique;
 import jakarta.validation.constraints.NotNull;

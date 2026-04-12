@@ -2,20 +2,19 @@ package com.hmtmcse.module.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.time.LocalDateTime;
 
 /**
  * JPA Entity for persisting module state in database
  * Tracks which modules are installed and their current state
  */
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "system_modules")
 @Data
-public class ModuleEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ModuleEntity extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 100)
     private String moduleId;

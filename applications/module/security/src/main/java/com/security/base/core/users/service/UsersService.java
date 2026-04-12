@@ -7,6 +7,7 @@ import com.security.base.events.BeforeDeleteRole;
 import com.security.base.util.NotFoundException;
 import com.problemfighter.pfspring.restapi.rr.RequestResponse;
 
+import java.util.Optional;
 import java.util.Random;
 
 import lombok.RequiredArgsConstructor;
@@ -96,4 +97,7 @@ public class UsersService implements RequestResponse {
     }
 
 
+    public Optional<Users> findById(Long ownerId) {
+        return usersRepository.findById(ownerId);
+    }
 }
