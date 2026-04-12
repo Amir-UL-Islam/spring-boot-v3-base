@@ -27,7 +27,8 @@ public class AmbulanceEntity extends BaseEntity implements RestEntity {
 
     private Boolean active;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "ambulance")
+    @EqualsAndHashCode.Exclude
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "ambulance", cascade = CascadeType.ALL)
     private Set<AmbulanceVehicleEntity> ambulanceVehicles = new HashSet<>();
 
 }

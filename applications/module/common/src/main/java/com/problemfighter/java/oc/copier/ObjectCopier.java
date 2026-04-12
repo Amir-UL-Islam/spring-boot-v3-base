@@ -13,6 +13,7 @@ import com.problemfighter.java.oc.data.ObjectCopierInfoDetails;
 import com.problemfighter.java.oc.reflection.ReflectionProcessor;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -24,6 +25,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
 import jakarta.validation.Validation;
@@ -464,6 +468,159 @@ public class ObjectCopier {
         return fieldValue == null ? this.reflectionProcessor.newInstance(field.getType()) : fieldValue;
     }
 
+    private boolean isRelationAnnotationAvailable(Field field) {
+        return field != null && (field.isAnnotationPresent(ManyToOne.class) || field.isAnnotationPresent(OneToOne.class));
+    }
+
+    private boolean isParentAssignable(Field field, Object parent) {
+        return field != null && parent != null && !Modifier.isStatic(field.getModifiers()) && field.getType().isAssignableFrom(parent.getClass());
+    }
+
+    private boolean isCandidateBackReferenceField(Field field) {
+        Class<?> type = field.getType();
+        return !this.reflectionProcessor.isPrimitive(type) && !type.isEnum() && !this.reflectionProcessor.isList(type) && !this.reflectionProcessor.isSet(type) && !this.reflectionProcessor.isQueue(type) && !this.reflectionProcessor.isMap(type);
+    }
+
+    private Field getSingleCandidate(List<Field> fields) {
+        if (fields.size() == 1) {
+            Field field = fields.get(0);
+            field.setAccessible(true);
+            return field;
+        }
+
+        return null;
+    }
+
+    private String getMappedBy(Field field) {
+        if (field == null) {
+            return null;
+        }
+
+        if (field.isAnnotationPresent(OneToMany.class)) {
+            String mappedBy = field.getAnnotation(OneToMany.class).mappedBy();
+            return mappedBy == null || mappedBy.isBlank() ? null : mappedBy;
+        }
+
+        if (field.isAnnotationPresent(OneToOne.class)) {
+            String mappedBy = field.getAnnotation(OneToOne.class).mappedBy();
+            return mappedBy == null || mappedBy.isBlank() ? null : mappedBy;
+        }
+
+        return null;
+    }
+
+    private Field getMappedBackReferenceField(Object parent, Object child, Field parentField) {
+        String mappedBy = this.getMappedBy(parentField);
+        if (mappedBy == null || child == null) {
+            return null;
+        }
+
+        Field childField = this.reflectionProcessor.getAnyFieldFromKlass(child.getClass(), mappedBy);
+        if (this.isParentAssignable(childField, parent)) {
+            childField.setAccessible(true);
+            return childField;
+        }
+
+        return null;
+    }
+
+    private Field getCompatibleBackReferenceField(Object parent, Object child) {
+        List<Field> exactRelationMatches = new ArrayList<>();
+        List<Field> exactTypeMatches = new ArrayList<>();
+        List<Field> relationMatches = new ArrayList<>();
+        List<Field> compatibleMatches = new ArrayList<>();
+
+        for (Field field : this.reflectionProcessor.getAllField(child.getClass())) {
+            if (!this.isCandidateBackReferenceField(field) || !this.isParentAssignable(field, parent)) {
+                continue;
+            }
+
+            compatibleMatches.add(field);
+            boolean isExactType = field.getType() == parent.getClass();
+            boolean isRelationField = this.isRelationAnnotationAvailable(field);
+            if (isExactType && isRelationField) {
+                exactRelationMatches.add(field);
+            } else if (isExactType) {
+                exactTypeMatches.add(field);
+            } else if (isRelationField) {
+                relationMatches.add(field);
+            }
+        }
+
+        Field candidate = this.getSingleCandidate(exactRelationMatches);
+        if (candidate != null) {
+            return candidate;
+        }
+
+        candidate = this.getSingleCandidate(exactTypeMatches);
+        if (candidate != null) {
+            return candidate;
+        }
+
+        candidate = this.getSingleCandidate(relationMatches);
+        if (candidate != null) {
+            return candidate;
+        }
+
+        return this.getSingleCandidate(compatibleMatches);
+    }
+
+    private Field getChildParentReferenceField(Object parent, Object child, Field parentField) {
+        Field mappedField = this.getMappedBackReferenceField(parent, child, parentField);
+        return mappedField != null ? mappedField : this.getCompatibleBackReferenceField(parent, child);
+    }
+
+    private void bindParentReference(Object parent, Object child, Field parentField) throws IllegalAccessException {
+        if (parent == null || child == null || parent == child) {
+            return;
+        }
+
+        Class<?> childClass = child.getClass();
+        if (this.reflectionProcessor.isPrimitive(childClass) || childClass.isEnum()) {
+            return;
+        }
+
+        Field childParentField = this.getChildParentReferenceField(parent, child, parentField);
+        if (childParentField != null) {
+            childParentField.setAccessible(true);
+            childParentField.set(child, parent);
+        }
+    }
+
+    private void bindChildrenToParent(Object parent, Object childOrChildren, Field parentField) throws IllegalAccessException {
+        if (childOrChildren == null) {
+            return;
+        }
+
+        if (childOrChildren instanceof Map<?, ?> map) {
+            for (Object child : map.values()) {
+                this.bindChildrenToParent(parent, child, parentField);
+            }
+            return;
+        }
+
+        if (childOrChildren instanceof Collection<?> children) {
+            for (Object child : children) {
+                this.bindParentReference(parent, child, parentField);
+            }
+            return;
+        }
+
+        this.bindParentReference(parent, childOrChildren, parentField);
+    }
+
+    private void linkNestedParents(List<CopySourceDstField> copySourceDstFields, Object destination) throws IllegalAccessException {
+        for (CopySourceDstField copySourceDstField : copySourceDstFields) {
+            if (copySourceDstField.destination == null) {
+                continue;
+            }
+
+            copySourceDstField.destination.setAccessible(true);
+            Object mappedValue = copySourceDstField.destination.get(destination);
+            this.bindChildrenToParent(destination, mappedValue, copySourceDstField.destination);
+        }
+    }
+
     private <S, D> D processCopy(S source, D destination, String nestedKey) throws ObjectCopierException {
         try {
             if (source != null && destination != null) {
@@ -476,6 +633,8 @@ public class ObjectCopier {
                     copySourceDstField.destination.setAccessible(true);
                     copySourceDstField.destination.set(destination, this.processAndGetValue(sourceValue, destinationValue, copySourceDstField.destination.getType(), copySourceDstField.destination));
                 }
+
+                this.linkNestedParents(details.copySourceDstFields, destination);
 
                 return destination;
             } else {

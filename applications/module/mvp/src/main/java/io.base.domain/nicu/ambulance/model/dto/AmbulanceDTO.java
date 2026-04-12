@@ -25,6 +25,7 @@ public class AmbulanceDTO extends BaseDTO implements RestDTO {
 
     private Boolean active;
 
+    @EqualsAndHashCode.Exclude
     private Set<AmbulanceVehicleDTO> ambulanceVehicles = new HashSet<>();
 
 

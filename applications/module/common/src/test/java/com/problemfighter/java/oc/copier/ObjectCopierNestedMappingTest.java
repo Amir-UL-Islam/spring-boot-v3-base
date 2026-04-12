@@ -1,6 +1,8 @@
 package com.problemfighter.java.oc.copier;
 
 import com.problemfighter.java.oc.common.ObjectCopierException;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +32,7 @@ class ObjectCopierNestedMappingTest {
         Assertions.assertInstanceOf(OrderLineItem.class, destination.lineItems.get(0));
         Assertions.assertEquals("SKU-1", destination.lineItems.get(0).sku);
         Assertions.assertEquals(3, destination.lineItems.get(0).qty);
+        Assertions.assertSame(destination, destination.lineItems.get(0).order);
     }
 
     @Test
@@ -47,6 +50,7 @@ class ObjectCopierNestedMappingTest {
         Assertions.assertNotNull(destination.address);
         Assertions.assertInstanceOf(Address.class, destination.address);
         Assertions.assertEquals("Dhaka", destination.address.city);
+        Assertions.assertSame(destination, destination.address.customer);
     }
 
     static class OrderDto {
@@ -56,6 +60,8 @@ class ObjectCopierNestedMappingTest {
 
     static class Order {
         String orderNo;
+
+        @OneToMany(mappedBy = "order")
         List<OrderLineItem> lineItems;
     }
 
@@ -67,6 +73,9 @@ class ObjectCopierNestedMappingTest {
     static class OrderLineItem {
         String sku;
         Integer qty;
+
+        @ManyToOne
+        Order order;
     }
 
     static class CustomerDto {
@@ -85,6 +94,7 @@ class ObjectCopierNestedMappingTest {
 
     static class Address {
         String city;
+        Customer customer;
     }
 }
 
