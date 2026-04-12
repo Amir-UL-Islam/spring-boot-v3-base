@@ -1,5 +1,6 @@
 package com.problemfighter.java.oc.reflection;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,7 +35,7 @@ import java.util.Vector;
 
 public class ReflectionProcessor {
     public List<Class<?>> getAllSuperClass(Class<?> klass) {
-        List<Class<?>> classes = new ArrayList();
+        List<Class<?>> classes = new ArrayList<>();
         if (klass != null) {
             for (Class<?> superclass = klass.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
                 classes.add(superclass);
@@ -46,7 +47,7 @@ public class ReflectionProcessor {
 
     public List<Class<?>> getAllClass(Class<?> klass) {
         if (klass == null) {
-            return new ArrayList();
+            return new ArrayList<>();
         } else {
             List<Class<?>> classes = this.getAllSuperClass(klass);
             classes.add(klass);
@@ -55,7 +56,7 @@ public class ReflectionProcessor {
     }
 
     public List<Field> getAllField(Class<?> klass) {
-        List<Field> fields = new ArrayList();
+        List<Field> fields = new ArrayList<>();
         if (klass != null) {
             for (Class<?> pClass : this.getAllClass(klass)) {
                 fields.addAll(Arrays.asList(pClass.getDeclaredFields()));
@@ -79,7 +80,8 @@ public class ReflectionProcessor {
 
     private Field getField(Object object, String fieldName) {
         try {
-            return object.getClass().getField(fieldName);
+            Class<?> klass = object instanceof Class<?> ? (Class<?>) object : object.getClass();
+            return klass.getField(fieldName);
         } catch (NoSuchFieldException var4) {
             return null;
         }
@@ -112,6 +114,7 @@ public class ReflectionProcessor {
             for (Class<?> superclass = klass.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
                 field = this.getDeclaredField(superclass, fieldName);
                 if (field != null) {
+                    field.setAccessible(true);
                     return field;
                 }
             }
@@ -122,7 +125,9 @@ public class ReflectionProcessor {
 
     public <D> D newInstance(Class<D> klass) {
         try {
-            return (D) klass.getDeclaredConstructor().newInstance();
+            Constructor<D> constructor = klass.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
                  InstantiationException var3) {
             return null;

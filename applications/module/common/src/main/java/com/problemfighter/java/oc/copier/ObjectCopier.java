@@ -13,8 +13,11 @@ import com.problemfighter.java.oc.data.ObjectCopierInfoDetails;
 import com.problemfighter.java.oc.reflection.ReflectionProcessor;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +34,7 @@ public class ObjectCopier {
     private ReflectionProcessor reflectionProcessor = new ReflectionProcessor();
     private LinkedHashMap<String, CopyReport> errorReports = new LinkedHashMap();
     public InitCustomProcessor initCustomProcessor = null;
+    private final ThreadLocal<Set<String>> copyGuard = ThreadLocal.withInitial(HashSet::new);
 
     private void addReport(String name, String errorType, String nestedKey) {
         if (name == null) {
@@ -64,18 +68,57 @@ public class ObjectCopier {
     }
 
     private Boolean isValidateTypeOrReport(CopySourceDstField copySourceDstField, String nestedKey) {
-        Boolean isValid = false;
+        boolean isValid = false;
         if (copySourceDstField.source == null) {
             this.addReport(copySourceDstField.sourceFieldName, CopyReportError.DST_PROPERTY_UNAVAILABLE.label, nestedKey);
         } else if (copySourceDstField.destination == null) {
             this.addReport(copySourceDstField.sourceFieldName, CopyReportError.DST_PROPERTY_UNAVAILABLE.label, nestedKey);
-        } else if (copySourceDstField.source.getType() != copySourceDstField.destination.getType()) {
+        } else if (!this.isCompatibleForCopy(copySourceDstField.source.getType(), copySourceDstField.destination.getType())) {
             this.addReport(copySourceDstField.source.getName(), CopyReportError.DATA_TYPE_MISMATCH.label, nestedKey);
         } else {
             isValid = true;
         }
 
         return isValid;
+    }
+
+    private boolean isCompatibleForCopy(Class<?> sourceType, Class<?> destinationType) {
+        if (sourceType == destinationType || destinationType.isAssignableFrom(sourceType)) {
+            return true;
+        }
+
+        if (this.reflectionProcessor.isPrimitive(sourceType) || this.reflectionProcessor.isPrimitive(destinationType)) {
+            return false;
+        }
+
+        if (sourceType.isEnum() || destinationType.isEnum()) {
+            return false;
+        }
+
+        if (this.reflectionProcessor.isList(sourceType) && this.reflectionProcessor.isList(destinationType)) {
+            return true;
+        }
+
+        if (this.reflectionProcessor.isSet(sourceType) && this.reflectionProcessor.isSet(destinationType)) {
+            return true;
+        }
+
+        if (this.reflectionProcessor.isQueue(sourceType) && this.reflectionProcessor.isQueue(destinationType)) {
+            return true;
+        }
+
+        if (this.reflectionProcessor.isMap(sourceType) && this.reflectionProcessor.isMap(destinationType)) {
+            return true;
+        }
+
+        boolean sourceIsCollectionLike = this.reflectionProcessor.isList(sourceType) || this.reflectionProcessor.isSet(sourceType) || this.reflectionProcessor.isQueue(sourceType) || this.reflectionProcessor.isMap(sourceType);
+        boolean destinationIsCollectionLike = this.reflectionProcessor.isList(destinationType) || this.reflectionProcessor.isSet(destinationType) || this.reflectionProcessor.isQueue(destinationType) || this.reflectionProcessor.isMap(destinationType);
+        if (sourceIsCollectionLike || destinationIsCollectionLike) {
+            return false;
+        }
+
+        // Allow deep object copy for user-domain classes (DTO <-> Entity) but avoid arbitrary java.* cross-type mapping.
+        return !sourceType.getName().startsWith("java.") && !destinationType.getName().startsWith("java.");
     }
 
     private Boolean isDataMapperAnnotationAvailable(Field field) {
@@ -176,7 +219,7 @@ public class ObjectCopier {
             copySourceDstField.setDataObject(dataObject);
             copySourceDstField.setDestination(field);
             copySourceDstField.isStrictMapping = objectCopierInfoDetails.isStrictMapping;
-            copySourceDstField = this.getCopiableSrcDstField(copySourceDstField);
+            this.getCopiableSrcDstField(copySourceDstField);
             if (this.isValidateTypeOrReport(copySourceDstField, nestedKey)) {
                 list.add(copySourceDstField);
             }
@@ -231,13 +274,61 @@ public class ObjectCopier {
         return objectCopierInfoDetails;
     }
 
-    private Object processMap(Object sourceObject, Class<?> destinationProperty) throws IllegalAccessException, ObjectCopierException {
+    private Class<?> getClassFromType(Type type) {
+        if (type instanceof Class<?>) {
+            return (Class<?>) type;
+        }
+
+        if (type instanceof ParameterizedType) {
+            Type rawType = ((ParameterizedType) type).getRawType();
+            if (rawType instanceof Class<?>) {
+                return (Class<?>) rawType;
+            }
+        }
+
+        return null;
+    }
+
+    private Class<?> getParameterizedType(Field field, int index) {
+        if (field == null) {
+            return null;
+        }
+
+        Type genericType = field.getGenericType();
+        if (!(genericType instanceof ParameterizedType)) {
+            return null;
+        }
+
+        Type[] typeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
+        if (index < 0 || index >= typeArguments.length) {
+            return null;
+        }
+
+        return this.getClassFromType(typeArguments[index]);
+    }
+
+    private Object getObjectNewInstance(Class<?> klass) {
+        return klass == null ? null : this.reflectionProcessor.newInstance(klass);
+    }
+
+    private Object getObjectNewInstanceOrDefault(Class<?> klass, Object source) {
+        Object instance = this.getObjectNewInstance(klass);
+        return instance != null ? instance : (source != null ? this.getObjectNewInstance(source) : null);
+    }
+
+    private Object processMap(Object sourceObject, Class<?> destinationProperty, Field destinationField) throws IllegalAccessException, ObjectCopierException {
         if (sourceObject != null && destinationProperty != null) {
             Map<?, ?> map = (Map) sourceObject;
             Map response = this.reflectionProcessor.instanceOfMap(destinationProperty);
+            Class<?> mapKeyType = this.getParameterizedType(destinationField, 0);
+            Class<?> mapValueType = this.getParameterizedType(destinationField, 1);
 
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                response.put(this.processAndGetValue(entry.getKey(), this.getObjectNewInstance(entry.getKey()), entry.getKey().getClass()), this.processAndGetValue(entry.getValue(), this.getObjectNewInstance(entry.getValue()), entry.getValue().getClass()));
+                Object sourceKey = entry.getKey();
+                Object sourceValue = entry.getValue();
+                Object mappedKey = sourceKey == null ? null : this.processAndGetValue(sourceKey, this.getObjectNewInstanceOrDefault(mapKeyType, sourceKey), mapKeyType != null ? mapKeyType : sourceKey.getClass(), null);
+                Object mappedValue = sourceValue == null ? null : this.processAndGetValue(sourceValue, this.getObjectNewInstanceOrDefault(mapValueType, sourceValue), mapValueType != null ? mapValueType : sourceValue.getClass(), null);
+                response.put(mappedKey, mappedValue);
             }
 
             return response.size() == 0 ? null : response;
@@ -246,14 +337,15 @@ public class ObjectCopier {
         }
     }
 
-    private Object processSet(Object sourceObject, Class<?> destinationProperty) throws ObjectCopierException, IllegalAccessException {
+    private Object processSet(Object sourceObject, Class<?> destinationProperty, Field destinationField) throws ObjectCopierException, IllegalAccessException {
         if (sourceObject != null && destinationProperty != null) {
             Set<?> list = (Set) sourceObject;
             Set response = this.reflectionProcessor.instanceOfSet(destinationProperty);
+            Class<?> elementType = this.getParameterizedType(destinationField, 0);
 
             for (Object data : list) {
                 if (data != null) {
-                    response.add(this.processAndGetValue(data, this.getObjectNewInstance(data), data.getClass()));
+                    response.add(this.processAndGetValue(data, this.getObjectNewInstanceOrDefault(elementType, data), elementType != null ? elementType : data.getClass(), null));
                 }
             }
 
@@ -267,14 +359,15 @@ public class ObjectCopier {
         }
     }
 
-    private Object processQueue(Object sourceObject, Class<?> destinationProperty) throws ObjectCopierException, IllegalAccessException {
+    private Object processQueue(Object sourceObject, Class<?> destinationProperty, Field destinationField) throws ObjectCopierException, IllegalAccessException {
         if (sourceObject != null && destinationProperty != null) {
             Queue<?> list = (Queue) sourceObject;
             Queue response = this.reflectionProcessor.instanceOfQueue(destinationProperty);
+            Class<?> elementType = this.getParameterizedType(destinationField, 0);
 
             for (Object data : list) {
                 if (data != null) {
-                    response.add(this.processAndGetValue(data, this.getObjectNewInstance(data), data.getClass()));
+                    response.add(this.processAndGetValue(data, this.getObjectNewInstanceOrDefault(elementType, data), elementType != null ? elementType : data.getClass(), null));
                 }
             }
 
@@ -288,14 +381,15 @@ public class ObjectCopier {
         }
     }
 
-    private Object processList(Object sourceObject, Class<?> destinationProperty) throws IllegalAccessException, ObjectCopierException {
+    private Object processList(Object sourceObject, Class<?> destinationProperty, Field destinationField) throws IllegalAccessException, ObjectCopierException {
         if (sourceObject != null && destinationProperty != null) {
             Collection<?> list = (Collection) sourceObject;
             Collection response = this.reflectionProcessor.instanceOfList(destinationProperty);
+            Class<?> elementType = this.getParameterizedType(destinationField, 0);
 
             for (Object data : list) {
                 if (data != null) {
-                    response.add(this.processAndGetValue(data, this.getObjectNewInstance(data), data.getClass()));
+                    response.add(this.processAndGetValue(data, this.getObjectNewInstanceOrDefault(elementType, data), elementType != null ? elementType : data.getClass(), null));
                 }
             }
 
@@ -309,7 +403,7 @@ public class ObjectCopier {
         }
     }
 
-    private Object processAndGetValue(Object source, Object destination, Class<?> klass) throws ObjectCopierException, IllegalAccessException {
+    private Object processAndGetValue(Object source, Object destination, Class<?> klass, Field destinationField) throws ObjectCopierException, IllegalAccessException {
         if (source == null && destination != null) {
             return destination;
         } else if (source == null) {
@@ -319,13 +413,36 @@ public class ObjectCopier {
         } else if (source.getClass().isEnum()) {
             return source;
         } else if (this.reflectionProcessor.isList(source.getClass())) {
-            return this.processList(source, klass);
+            return this.processList(source, klass, destinationField);
         } else if (this.reflectionProcessor.isMap(source.getClass())) {
-            return this.processMap(source, klass);
+            return this.processMap(source, klass, destinationField);
         } else if (this.reflectionProcessor.isSet(source.getClass())) {
-            return this.processSet(source, klass);
+            return this.processSet(source, klass, destinationField);
         } else {
-            return this.reflectionProcessor.isQueue(source.getClass()) ? this.processQueue(source, klass) : this.processCopy(source, destination, destination.getClass().getSimpleName());
+            if (this.reflectionProcessor.isQueue(source.getClass())) {
+                return this.processQueue(source, klass, destinationField);
+            }
+
+            Object destinationObject = destination != null ? destination : this.getObjectNewInstance(klass);
+            if (destinationObject == null) {
+                throw new ObjectCopierException("Unable to instantiate destination type: " + (klass != null ? klass.getName() : "null"));
+            }
+
+            String guardKey = System.identityHashCode(source) + ":" + System.identityHashCode(destinationObject);
+            Set<String> activeCopies = this.copyGuard.get();
+            if (activeCopies.contains(guardKey)) {
+                return destinationObject;
+            }
+
+            activeCopies.add(guardKey);
+            try {
+                return this.processCopy(source, destinationObject, destinationObject.getClass().getSimpleName());
+            } finally {
+                activeCopies.remove(guardKey);
+                if (activeCopies.isEmpty()) {
+                    this.copyGuard.remove();
+                }
+            }
         }
     }
 
@@ -356,14 +473,15 @@ public class ObjectCopier {
                 for (CopySourceDstField copySourceDstField : details.copySourceDstFields) {
                     Object sourceValue = this.getFieldValue(source, copySourceDstField.source);
                     Object destinationValue = this.getFieldValueOrObject(destination, copySourceDstField.destination);
-                    copySourceDstField.destination.set(destination, this.processAndGetValue(sourceValue, destinationValue, copySourceDstField.destination.getType()));
+                    copySourceDstField.destination.setAccessible(true);
+                    copySourceDstField.destination.set(destination, this.processAndGetValue(sourceValue, destinationValue, copySourceDstField.destination.getType(), copySourceDstField.destination));
                 }
 
                 return destination;
             } else {
                 return null;
             }
-        } catch (IllegalAccessException e) {
+        } catch (IllegalAccessException | IllegalArgumentException e) {
             e.printStackTrace();
             throw new ObjectCopierException(e.getMessage());
         }
@@ -371,6 +489,9 @@ public class ObjectCopier {
 
     private <S, D> D processCopy(S source, Class<D> klass, String nestedKey) throws ObjectCopierException {
         D toInstance = (D) this.reflectionProcessor.newInstance(klass);
+        if (source != null && toInstance == null) {
+            throw new ObjectCopierException("Unable to instantiate destination type: " + (klass != null ? klass.getName() : "null"));
+        }
         return (D) this.processCopy(source, toInstance, nestedKey);
     }
 

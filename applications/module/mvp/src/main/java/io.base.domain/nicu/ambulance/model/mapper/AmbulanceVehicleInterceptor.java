@@ -14,8 +14,9 @@ public class AmbulanceVehicleInterceptor implements CopyInterceptor<AmbulanceVeh
 
     @Override
     public void meAsSrc(AmbulanceVehicleDTO source, AmbulanceVehicleEntity destination) {
-        destination.setAmbulance(ambulanceService.findById(source.getAmbulanceId()).orElse(null));
-
+        if (source.getAmbulanceId() != null) {
+            destination.setAmbulance(ambulanceService.findById(source.getAmbulanceId()).orElse(null));
+        }
     }
 
     @Override
