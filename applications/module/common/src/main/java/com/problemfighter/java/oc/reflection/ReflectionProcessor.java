@@ -155,19 +155,27 @@ public class ReflectionProcessor {
     }
 
     public Boolean isList(Class<?> c) {
-        return c == List.class || c == Collection.class || c == LinkedList.class || c == ArrayList.class || c == Vector.class || c == Stack.class;
+        if (c == null) {
+            return false;
+        }
+
+        if (List.class.isAssignableFrom(c)) {
+            return true;
+        }
+
+        return c == Collection.class || (Collection.class.isAssignableFrom(c) && !Set.class.isAssignableFrom(c) && !Queue.class.isAssignableFrom(c));
     }
 
     public Boolean isSet(Class<?> c) {
-        return c == TreeSet.class || c == Set.class || c == LinkedHashSet.class || c == HashSet.class || c == SortedSet.class;
+        return c != null && Set.class.isAssignableFrom(c);
     }
 
     public Boolean isQueue(Class<?> c) {
-        return c == Queue.class || c == PriorityQueue.class || c == Deque.class;
+        return c != null && Queue.class.isAssignableFrom(c);
     }
 
     public Boolean isMap(Class<?> c) {
-        return c == Map.class || c == LinkedHashMap.class || c == HashMap.class || c == SortedMap.class || c == TreeMap.class;
+        return c != null && Map.class.isAssignableFrom(c);
     }
 
     public Collection<?> instanceOfList(Class<?> c) {
