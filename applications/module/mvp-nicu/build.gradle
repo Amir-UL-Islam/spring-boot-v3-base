@@ -28,25 +28,19 @@ dependencyManagement {
 dependencies {
     implementation project(':common')
     implementation project(':request-response')
+    implementation project(':security')
 
+    implementation('org.springframework.security:spring-security-core')
+    implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-validation')
-
-    // Users implements UserDetails; export core API for downstream compile classpaths.
-    api('org.springframework.security:spring-security-core')
-    implementation('org.springframework.boot:spring-boot-starter-security')
-    implementation('org.springframework.boot:spring-boot-starter-oauth2-resource-server')
-    implementation('com.warrenstrange:googleauth:1.1.5')
-    implementation('com.auth0:java-jwt:4.5.0')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly('com.h2database:h2')
-    implementation('io.github.wimdeblauwe:error-handling-spring-boot-starter:5.0.0')
-    implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0')
     compileOnly('org.projectlombok:lombok')
     annotationProcessor('org.projectlombok:lombok')
     testCompileOnly('org.projectlombok:lombok')
     testAnnotationProcessor('org.projectlombok:lombok')
-    testImplementation('io.rest-assured:rest-assured:6.0.0')
 }
 
 

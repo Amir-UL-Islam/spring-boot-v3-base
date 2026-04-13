@@ -1,7 +1,6 @@
 plugins {
     id 'java'
     id 'java-library'
-    id 'maven-publish'
     id 'org.springframework.boot' version '4.0.1' apply false
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -36,21 +35,4 @@ test {
 
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs.add("-parameters")
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifactId = 'common'
-
-            pom {
-                name = 'Common Library'
-                description = 'Common utilities and base classes for modular Spring Boot applications'
-            }
-        }
-    }
-    repositories {
-        mavenLocal()
-    }
 }

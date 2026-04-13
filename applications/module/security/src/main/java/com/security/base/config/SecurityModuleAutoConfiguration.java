@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * Auto-configuration for Security Module
+ * Autoconfiguration for Security Module
  * This enables the security module to be auto-discovered and loaded
  * Note: JPA configuration is handled by DomainConfig
  */
