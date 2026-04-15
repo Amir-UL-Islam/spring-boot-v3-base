@@ -24,6 +24,7 @@ public class ACLFilter extends OncePerRequestFilter {
             "/register",
             "/authenticate",
             "/authenticateGoogle",
+            "/refresh-token",
             "/oauth/token"
     );
 

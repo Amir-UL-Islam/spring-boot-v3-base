@@ -2,6 +2,7 @@ package com.security.base.core.privilege;
 
 import com.security.base.core.privilege.model.entity.Privilege;
 import com.security.base.core.privilege.repository.PrivilegeRepository;
+import com.security.base.core.security.oauth.PermissionCodes;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -24,12 +25,41 @@ public class PrivilegeLoader implements ApplicationRunner {
     @Override
     @Transactional
     public void run(final ApplicationArguments args) {
-        if (privilegeRepository.count() != 0) {
-            return;
-        }
         log.info("initializing privileges");
-        createIfMissing("ADMIN");
-        createIfMissing("USER");
+        createIfMissing(PermissionCodes.ADMIN);
+        createIfMissing(PermissionCodes.USER);
+
+        createIfMissing(PermissionCodes.USER_READ);
+        createIfMissing(PermissionCodes.USER_CREATE);
+        createIfMissing(PermissionCodes.USER_UPDATE);
+        createIfMissing(PermissionCodes.USER_DELETE);
+
+        createIfMissing(PermissionCodes.ROLE_READ);
+        createIfMissing(PermissionCodes.ROLE_CREATE);
+        createIfMissing(PermissionCodes.ROLE_UPDATE);
+        createIfMissing(PermissionCodes.ROLE_DELETE);
+
+        createIfMissing(PermissionCodes.PRIVILEGE_READ);
+        createIfMissing(PermissionCodes.PRIVILEGE_CREATE);
+        createIfMissing(PermissionCodes.PRIVILEGE_UPDATE);
+        createIfMissing(PermissionCodes.PRIVILEGE_DELETE);
+        createIfMissing(PermissionCodes.PRIVILEGE_ASSIGN);
+
+        createIfMissing(PermissionCodes.URL_READ);
+        createIfMissing(PermissionCodes.URL_CREATE);
+        createIfMissing(PermissionCodes.URL_UPDATE);
+        createIfMissing(PermissionCodes.URL_DELETE);
+
+        createIfMissing(PermissionCodes.MODULE_READ);
+        createIfMissing(PermissionCodes.MODULE_MANAGE);
+
+        createIfMissing(PermissionCodes.MATRIX_READ);
+        createIfMissing(PermissionCodes.MATRIX_MANAGE);
+
+        createIfMissing(PermissionCodes.AMBULANCE_READ);
+        createIfMissing(PermissionCodes.AMBULANCE_CREATE);
+        createIfMissing(PermissionCodes.AMBULANCE_UPDATE);
+        createIfMissing(PermissionCodes.AMBULANCE_DELETE);
     }
 
     private void createIfMissing(final String name) {

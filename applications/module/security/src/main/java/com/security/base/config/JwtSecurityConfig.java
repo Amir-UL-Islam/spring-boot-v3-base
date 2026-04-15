@@ -63,7 +63,7 @@ public class JwtSecurityConfig {
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         final JwtGrantedAuthoritiesConverter delegate = new JwtGrantedAuthoritiesConverter();
         delegate.setAuthorityPrefix(""); // keep roles as-is
-        delegate.setAuthoritiesClaimName("roles");
+        delegate.setAuthoritiesClaimName("authorities");
 
         final JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(delegate);
@@ -81,6 +81,7 @@ public class JwtSecurityConfig {
                                 "/authenticate",
                                 "/authenticateGoogle",
                                 "/oauth/token",
+                                "/refresh-token",
                                 "/register",
                                 "/",
                                 "/index.html",
@@ -110,7 +111,7 @@ public class JwtSecurityConfig {
 
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",   // React dev server
-                "http://localhost:8800"    // Backend origin (for same-port serving)
+                "http://localhost:9988"    // Backend origin (for same-port serving)
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

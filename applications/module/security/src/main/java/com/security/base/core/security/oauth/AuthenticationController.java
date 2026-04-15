@@ -9,6 +9,7 @@ import com.security.base.core.security.two_fa.TwoFactorService;
 import com.security.base.core.users.model.entity.Users;
 import com.security.base.core.users.repository.UsersRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 import java.time.Duration;
@@ -88,6 +89,7 @@ public class AuthenticationController {
         return buildAuthenticationResponse(userDetails, "direct", null, null);
     }
 
+    @Transactional
     @PostMapping(value = "/oauth/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> passwordGrant(
             @RequestParam("username") final String username,
@@ -127,8 +129,8 @@ public class AuthenticationController {
             users.setEmail(subject);
             users.setUsername(subject);
             users.setName(tokeninfoResponse.get("name").toString());
-            // assign default role
-            users.setRole(Set.of(roleRepository.findByName(UserRoles.ADMIN)));
+            // assign least-privileged default role for social login onboarding
+            users.setRole(Set.of(roleRepository.findByName(UserRoles.USER)));
         } else {
             log.info("updating existing user after successful authentication: {}", subject);
         }

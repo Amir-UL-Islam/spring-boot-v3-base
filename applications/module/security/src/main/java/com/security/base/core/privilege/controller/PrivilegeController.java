@@ -1,6 +1,7 @@
 package com.security.base.core.privilege.controller;
 
 import com.security.base.core.privilege.model.dto.PrivilegeDTO;
+import com.security.base.core.security.oauth.PermissionCodes;
 import com.security.base.core.privilege.service.implmentation.PrivilegeService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +12,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -28,17 +30,20 @@ public class PrivilegeController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('" + PermissionCodes.PRIVILEGE_READ + "')")
     public ResponseEntity<List<PrivilegeDTO>> getAllPrivileges() {
         return ResponseEntity.ok(privilegeService.findAll());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.PRIVILEGE_READ + "')")
     public ResponseEntity<PrivilegeDTO> getPrivilege(@PathVariable(name = "id") final Long id) {
         return ResponseEntity.ok(privilegeService.get(id));
     }
 
     @PostMapping
     @ApiResponse(responseCode = "201")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.PRIVILEGE_CREATE + "')")
     public ResponseEntity<Long> createPrivilege(
             @RequestBody @Valid final PrivilegeDTO privilegeDTO) {
         final Long createdId = privilegeService.create(privilegeDTO);
@@ -46,6 +51,7 @@ public class PrivilegeController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.PRIVILEGE_UPDATE + "')")
     public ResponseEntity<Long> updatePrivilege(@PathVariable(name = "id") final Long id,
                                                 @RequestBody @Valid final PrivilegeDTO privilegeDTO) {
         privilegeService.update(id, privilegeDTO);
@@ -54,6 +60,7 @@ public class PrivilegeController {
 
     @PatchMapping("/assign/url")
     @ApiResponse(responseCode = "201")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.PRIVILEGE_ASSIGN + "')")
     public ResponseEntity<Long> assignUrl(@RequestParam(name = "privilegeId") final Long privilegeId,
                                           @RequestParam(name = "urlId") final Long urlId) {
         privilegeService.assignUrl(privilegeId, urlId);
@@ -62,6 +69,7 @@ public class PrivilegeController {
 
     @PatchMapping("/remove/assess/url")
     @ApiResponse(responseCode = "201")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.PRIVILEGE_ASSIGN + "')")
     public ResponseEntity<Long> removeUrl(@RequestParam(name = "privilegeId") final Long privilegeId,
                                           @RequestParam(name = "urlId") final Long urlId) {
         privilegeService.removeAssignUrl(privilegeId, urlId);
@@ -70,6 +78,7 @@ public class PrivilegeController {
 
     @DeleteMapping("/{id}")
     @ApiResponse(responseCode = "204")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.PRIVILEGE_DELETE + "')")
     public ResponseEntity<Void> deletePrivilege(@PathVariable(name = "id") final Long id) {
         privilegeService.delete(id);
         return ResponseEntity.noContent().build();

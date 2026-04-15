@@ -42,12 +42,12 @@ error:
 springdoc:
   pathsToMatch: /api/**, /authenticate, /authenticateGoogle, /refresh-token, /register
 app:
-  baseHost: http://localhost:8800
+  baseHost: http://localhost:9988
   google:
     client-id: GOOGLE_CLIENT_ID.apps.googleusercontent.com
     client-secret: GOOGLE_CLIENT_SECRET
 server:
-  port: 8800
+  port: 9988
 
 # Module Management Configuration
 modules:

@@ -1,0 +1,131 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #1c2530;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    margin-bottom: 16px;
+}
+
+.header h1 {
+    margin: 0 0 6px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.hidden {
+    display: none;
+}
+
+.grid-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 12px;
+}
+
+.grid-form label {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    gap: 5px;
+}
+
+input, select, button, textarea {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #c8d1dc;
+    font-size: 14px;
+}
+
+button {
+    cursor: pointer;
+    background: #0b69ff;
+    color: #fff;
+    border: 1px solid #0b69ff;
+}
+
+button.secondary {
+    background: #fff;
+    color: #0b69ff;
+}
+
+button.danger {
+    background: #d93025;
+    border-color: #d93025;
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+pre {
+    white-space: pre-wrap;
+    background: #101520;
+    color: #c4f1be;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.hint {
+    font-size: 12px;
+    color: #5f6c7b;
+}
+
+.data-table, #matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th, .data-table td, #matrix-table th, #matrix-table td {
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    padding: 8px;
+    font-size: 13px;
+    vertical-align: top;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #e6efff;
+    color: #0b69ff;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+

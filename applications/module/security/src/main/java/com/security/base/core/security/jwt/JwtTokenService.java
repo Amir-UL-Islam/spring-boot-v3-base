@@ -10,7 +10,9 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 
+import com.security.base.core.role.model.entity.Role;
 import com.security.base.core.users.model.entity.Users;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -73,9 +75,15 @@ public class JwtTokenService {
                 .withClaim("login_type", loginType)
                 .withClaim("token_type", tokenType.getValue())
                 .withClaim("token_version", userDetails.getTokenVersion())
-                // only for client information
-                .withArrayClaim("roles", userDetails.getAuthorities().stream()
+                .withArrayClaim("authorities", userDetails.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
+                        .filter(Objects::nonNull)
+                        .filter(authority -> !authority.startsWith("ROLE_"))
+                        .distinct()
+                        .toArray(String[]::new))
+                .withArrayClaim("roles", userDetails.getRole().stream()
+                        .map(Role::getName)
+                        .distinct()
                         .toArray(String[]::new))
                 .withIssuer("app")
                 .withIssuedAt(now)

@@ -11,10 +11,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UsersRepository extends JpaRepository<Users, Long> {
 
-    @EntityGraph(attributePaths = "role")
+    @EntityGraph(attributePaths = {"role", "role.privilege"})
     Users findByUsernameIgnoreCase(String username);
 
-    @EntityGraph(attributePaths = "role")
+    @EntityGraph(attributePaths = {"role", "role.privilege"})
     Users findByEmail(String email);
 
     Page<Users> findAllById(Long id, Pageable pageable);

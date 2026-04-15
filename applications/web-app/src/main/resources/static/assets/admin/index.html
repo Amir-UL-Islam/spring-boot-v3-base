@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Admin Console</title>
+    <link rel="stylesheet" href="/assets/admin/styles.css">
+</head>
+<body>
+<div class="container">
+    <header class="header">
+        <h1>Security Admin Console</h1>
+        <p>Matrix permissions, users, roles, privileges and URL mapping</p>
+    </header>
+
+    <section class="card" id="auth-card">
+        <h2>Login</h2>
+        <form id="login-form" class="grid-form">
+            <label>Username <input id="username" value="superadmin"></label>
+            <label>Password <input id="password" type="password" value="superadmin123!"></label>
+            <label>OTP (optional) <input id="otp"></label>
+            <button type="submit">Sign In</button>
+        </form>
+        <p class="hint">Dev seed users: <code>superadmin/superadmin123!</code>, <code>admin/admin123!</code></p>
+        <pre id="auth-output"></pre>
+    </section>
+
+    <section class="toolbar hidden" id="toolbar">
+        <button id="refresh-btn">Refresh All</button>
+        <button id="logout-btn" class="danger">Logout</button>
+        <span id="identity"></span>
+    </section>
+
+    <section class="card hidden" id="matrix-card">
+        <h2>Permission Matrix</h2>
+        <div id="roles"></div>
+        <table id="matrix-table">
+            <thead>
+            <tr>
+                <th>Resource</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section class="card hidden" id="users-card">
+        <h2>Users</h2>
+        <form id="create-user-form" class="grid-form"></form>
+        <table class="data-table" id="users-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section class="card hidden" id="roles-card">
+        <h2>Roles</h2>
+        <form id="create-role-form" class="grid-form"></form>
+        <table class="data-table" id="roles-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Privileges</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section class="card hidden" id="privileges-card">
+        <h2>Privileges</h2>
+        <form id="create-privilege-form" class="grid-form"></form>
+        <table class="data-table" id="privileges-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section class="card hidden" id="urls-card">
+        <h2>URL Permission Matrix</h2>
+        <form id="create-url-form" class="grid-form"></form>
+        <table class="data-table" id="urls-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Endpoint</th>
+                <th>Method</th>
+                <th>Privileges</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+</div>
+<script src="/assets/admin/app.js"></script>
+</body>
+</html>
+

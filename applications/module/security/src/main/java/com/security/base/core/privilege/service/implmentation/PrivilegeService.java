@@ -102,9 +102,9 @@ public class PrivilegeService implements RequestResponse {
         // Find permissions for this URL and method
         List<Privilege> permissions = privilegeRepository.findByUrlPatternAndHttpMethod(urlPattern, httpMethod);
 
-        // If no specific permissions, deny access
+        // If no URL policy exists, defer to method-level security annotations.
         if (permissions.isEmpty()) {
-            return false;
+            return true;
         }
 
         // Get user authorities

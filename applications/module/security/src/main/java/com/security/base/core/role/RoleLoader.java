@@ -2,10 +2,14 @@ package com.security.base.core.role;
 
 import com.security.base.core.privilege.model.entity.Privilege;
 import com.security.base.core.privilege.repository.PrivilegeRepository;
+import com.security.base.core.security.oauth.PermissionCodes;
+import com.security.base.core.security.oauth.UserRoles;
 import com.security.base.core.role.model.entity.Role;
 import com.security.base.core.role.repository.RoleRepository;
 import jakarta.transaction.Transactional;
-import java.util.Optional;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -31,29 +35,59 @@ public class RoleLoader implements ApplicationRunner {
     @Override
     @Transactional
     public void run(final ApplicationArguments args) {
-        if (roleRepository.count() != 0) {
-            return;
-        }
         log.info("initializing roles");
 
-        final Optional<Privilege> adminPrivilege = privilegeRepository.findByNameIgnoreCase("ADMIN");
-        final Optional<Privilege> userPrivilege = privilegeRepository.findByNameIgnoreCase("USER");
-        if (adminPrivilege.isEmpty() || userPrivilege.isEmpty()) {
-            log.warn("privileges missing, skipping role seeding");
-            return;
-        }
+        upsertRole(UserRoles.SUPER_ADMIN, "Super Administrator",
+                resolveAllPrivileges());
 
-        final Role adminRole = new Role();
-        adminRole.setName("ADMIN");
-        adminRole.setDescription("Admin Description");
-        adminRole.setPrivilege(Set.of(adminPrivilege.get()));
-        roleRepository.save(adminRole);
+        upsertRole(UserRoles.ADMIN, "Administrator",
+                resolvePrivileges(
+                        PermissionCodes.ADMIN,
+                        PermissionCodes.USER,
+                        PermissionCodes.USER_READ,
+                        PermissionCodes.USER_CREATE,
+                        PermissionCodes.USER_UPDATE,
+                        PermissionCodes.ROLE_READ,
+                        PermissionCodes.PRIVILEGE_READ,
+                        PermissionCodes.URL_READ,
+                        PermissionCodes.MODULE_READ,
+                        PermissionCodes.MATRIX_READ,
+                        PermissionCodes.AMBULANCE_READ,
+                        PermissionCodes.AMBULANCE_CREATE
+                ));
 
-        final Role userRole = new Role();
-        userRole.setName("USER");
-        userRole.setDescription("Demo Description");
-        userRole.setPrivilege(Set.of(userPrivilege.get()));
-        roleRepository.save(userRole);
+        upsertRole(UserRoles.USER, "Basic User",
+                resolvePrivileges(
+                        PermissionCodes.USER,
+                        PermissionCodes.USER_READ,
+                        PermissionCodes.MATRIX_READ,
+                        PermissionCodes.AMBULANCE_READ,
+                        PermissionCodes.AMBULANCE_CREATE
+                ));
+    }
+
+    private Set<Privilege> resolveAllPrivileges() {
+        return new LinkedHashSet<>(privilegeRepository.findAll());
+    }
+
+    private Set<Privilege> resolvePrivileges(final String... privilegeNames) {
+        final Set<Privilege> privileges = new LinkedHashSet<>();
+        Arrays.stream(privilegeNames)
+                .map(name -> privilegeRepository.findByNameIgnoreCase(name).orElse(null))
+                .filter(Objects::nonNull)
+                .forEach(privileges::add);
+        return privileges;
+    }
+
+    private void upsertRole(final String roleName, final String description, final Set<Privilege> privileges) {
+        Role role = roleRepository.findAll().stream()
+                .filter(r -> roleName.equalsIgnoreCase(r.getName()))
+                .findFirst()
+                .orElseGet(Role::new);
+        role.setName(roleName);
+        role.setDescription(description);
+        role.setPrivilege(privileges);
+        roleRepository.save(role);
     }
 
 }

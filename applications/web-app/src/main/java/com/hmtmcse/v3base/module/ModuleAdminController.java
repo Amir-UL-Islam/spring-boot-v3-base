@@ -2,13 +2,18 @@ package com.hmtmcse.v3base.module;
 
 import com.hmtmcse.module.core.Module;
 import com.hmtmcse.module.service.ModuleService;
+import com.security.base.core.security.oauth.PermissionCodes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +32,7 @@ public class ModuleAdminController {
 
     @GetMapping
     @Operation(summary = "List all modules", description = "Get all installed modules with their status")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_READ + "')")
     public ResponseEntity<List<ModuleDTO>> listModules() {
         List<Module> modules = moduleService.getAllModules();
         List<ModuleDTO> dtos = modules.stream()
@@ -37,6 +43,7 @@ public class ModuleAdminController {
 
     @GetMapping("/{moduleId}")
     @Operation(summary = "Get module details", description = "Get detailed information about a specific module")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_READ + "')")
     public ResponseEntity<ModuleDTO> getModule(@PathVariable String moduleId) {
         Module module = moduleService.getModule(moduleId);
         if (module == null) {
@@ -47,6 +54,7 @@ public class ModuleAdminController {
 
     @GetMapping("/active")
     @Operation(summary = "List active modules", description = "Get all currently active (started) modules")
+    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_READ + "')")
     public ResponseEntity<List<ModuleDTO>> listActiveModules() {
         List<Module> modules = moduleService.getStartedModules();
         List<ModuleDTO> dtos = modules.stream()
@@ -61,6 +69,7 @@ public class ModuleAdminController {
             description = "Enable and start a module (requires MODULE_ADMIN privilege)",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
+    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_MANAGE + "')")
     public ResponseEntity<MessageResponse> enableModule(@PathVariable String moduleId) {
         try {
             moduleService.enableModule(moduleId);
@@ -76,6 +85,7 @@ public class ModuleAdminController {
             description = "Disable and stop a module (requires MODULE_ADMIN privilege)",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
+    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_MANAGE + "')")
     public ResponseEntity<MessageResponse> disableModule(@PathVariable String moduleId) {
         try {
             moduleService.disableModule(moduleId);
@@ -93,6 +103,7 @@ public class ModuleAdminController {
             description = "Re-discover modules from classpath (requires MODULE_ADMIN privilege)",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
+    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_MANAGE + "')")
     public ResponseEntity<MessageResponse> refreshModules() {
         try {
             moduleService.discoverAndRegisterModules();
@@ -101,6 +112,7 @@ public class ModuleAdminController {
             return ResponseEntity.badRequest().body(new MessageResponse("Failed to refresh modules: " + e.getMessage(), false));
         }
     }
+
 
     private ModuleDTO toDTO(Module module) {
         ModuleDTO dto = new ModuleDTO();

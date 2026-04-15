@@ -29,8 +29,8 @@ public class RegistrationService {
         users.setName(registrationRequest.getName());
         users.setUsername(registrationRequest.getUsername());
         users.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-        // assign default role
-        users.setRole(Set.of(roleRepository.findByName(UserRoles.ADMIN)));
+        // assign least-privileged default role for new accounts
+        users.setRole(Set.of(roleRepository.findByName(UserRoles.USER)));
         users.setTokenVersion(new Random().nextInt());
         usersRepository.save(users);
     }
