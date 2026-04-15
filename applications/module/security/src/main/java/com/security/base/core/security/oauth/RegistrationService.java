@@ -4,7 +4,6 @@ import com.security.base.core.role.repository.RoleRepository;
 import com.security.base.core.users.model.entity.Users;
 import com.security.base.core.users.repository.UsersRepository;
 
-import java.util.Random;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
@@ -29,9 +28,13 @@ public class RegistrationService {
         users.setName(registrationRequest.getName());
         users.setUsername(registrationRequest.getUsername());
         users.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-        // assign least-privileged default role for new accounts
-        users.setRole(Set.of(roleRepository.findByName(UserRoles.USER)));
-        users.setTokenVersion(new Random().nextInt());
+        // Assign least-privileged default role for new accounts.
+        final var userRole = roleRepository.findByName(UserRoles.USER);
+        if (userRole == null) {
+            throw new IllegalStateException("USER role missing. Check RoleLoader initialization order.");
+        }
+        users.setRole(Set.of(userRole));
+        users.setTokenVersion(1);
         usersRepository.save(users);
     }
 

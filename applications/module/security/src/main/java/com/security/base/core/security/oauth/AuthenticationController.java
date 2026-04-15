@@ -125,12 +125,17 @@ public class AuthenticationController {
         Users users = usersRepository.findByEmail(subject);
         if (users == null) {
             log.info("adding new user after successful authentication: {}", subject);
+            final var userRole = roleRepository.findByName(UserRoles.USER);
+            if (userRole == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "USER role missing");
+            }
             users = new Users();
             users.setEmail(subject);
             users.setUsername(subject);
             users.setName(tokeninfoResponse.get("name").toString());
             // assign least-privileged default role for social login onboarding
-            users.setRole(Set.of(roleRepository.findByName(UserRoles.USER)));
+            users.setRole(Set.of(userRole));
+            users.setTokenVersion(1);
         } else {
             log.info("updating existing user after successful authentication: {}", subject);
         }

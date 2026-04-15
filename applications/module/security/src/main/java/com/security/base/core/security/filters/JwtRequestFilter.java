@@ -17,7 +17,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 
@@ -26,7 +25,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * a valid JWT has been found, load the user details from the database and set the
  * authenticated principal for the duration of this request.
  */
-@Component
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 

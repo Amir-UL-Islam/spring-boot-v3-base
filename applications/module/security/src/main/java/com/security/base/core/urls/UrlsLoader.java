@@ -2,12 +2,12 @@ package com.security.base.core.urls;
 
 import com.security.base.core.privilege.model.entity.Privilege;
 import com.security.base.core.privilege.repository.PrivilegeRepository;
+import com.security.base.core.security.oauth.PermissionCodes;
 import com.security.base.core.urls.model.entity.Url;
 import com.security.base.core.urls.repository.UrlsRepository;
 import jakarta.transaction.Transactional;
 
 import java.util.Map;
-import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -38,62 +38,102 @@ public class UrlsLoader implements ApplicationRunner {
         }
         log.info("initializing urls");
 
-        final Optional<Privilege> adminPrivilege = privilegeRepository.findByNameIgnoreCase("ADMIN");
-        final Optional<Privilege> userPrivilege = privilegeRepository.findByNameIgnoreCase("USER");
-        if (adminPrivilege.isEmpty() || userPrivilege.isEmpty()) {
-            log.warn("privileges missing, skipping url seeding");
-            return;
-        }
-
-        seedAdminUrls(adminPrivilege.get());
-        seedUserUrls(userPrivilege.get());
+        seedMatrixUrls();
     }
 
-    private void seedAdminUrls(final Privilege privilege) {
-        Map<String, String[]> adminEndpoints = Map.ofEntries(
-                entry("/authenticate", methods("POST")),
-                entry("/authenticateGoogle", methods("POST")),
-                entry("/register", methods("POST")),
+    private void seedMatrixUrls() {
+        grant(PermissionCodes.MATRIX_READ,
+                entry("/api/me/permissions", methods("GET")));
 
-                entry("/api/roles", methods("GET", "POST", "PUT", "PATCH", "DELETE")),
-                entry("/api/roles/privilegeValues", methods("GET")),
-                entry("/api/roles/{id}", methods("GET", "PUT", "DELETE")),
+        grant(PermissionCodes.USER_READ,
+                entry("/api/user", methods("GET")),
+                entry("/api/user/{id}", methods("GET")));
+        grant(PermissionCodes.USER_CREATE,
+                entry("/api/user", methods("POST")));
+        grant(PermissionCodes.USER_UPDATE,
+                entry("/api/user/{id}", methods("PUT")),
+                entry("/api/user/logout-all-devices", methods("POST")));
+        grant(PermissionCodes.USER_DELETE,
+                entry("/api/user/{id}", methods("DELETE")));
 
-                entry("/api/privileges", methods("GET", "POST", "PUT", "PATCH", "DELETE")),
-                entry("/api/privileges/{id}", methods("GET", "PUT", "DELETE")),
+        grant(PermissionCodes.ROLE_READ,
+                entry("/api/roles", methods("GET")),
+                entry("/api/roles/{id}", methods("GET")),
+                entry("/api/user/roleValues", methods("GET")));
+        grant(PermissionCodes.ROLE_CREATE,
+                entry("/api/roles", methods("POST")));
+        grant(PermissionCodes.ROLE_UPDATE,
+                entry("/api/roles/{id}", methods("PUT")));
+        grant(PermissionCodes.ROLE_DELETE,
+                entry("/api/roles/{id}", methods("DELETE")));
 
-                entry("/api/url", methods("GET", "POST", "PUT", "PATCH", "DELETE")),
+        grant(PermissionCodes.PRIVILEGE_READ,
+                entry("/api/privileges", methods("GET")),
+                entry("/api/privileges/{id}", methods("GET")),
                 entry("/api/url/privilegeValues", methods("GET")),
-                entry("/api/url/{id}", methods("GET", "PUT", "DELETE")),
+                entry("/api/roles/privilegeValues", methods("GET")));
+        grant(PermissionCodes.PRIVILEGE_CREATE,
+                entry("/api/privileges", methods("POST")));
+        grant(PermissionCodes.PRIVILEGE_UPDATE,
+                entry("/api/privileges/{id}", methods("PUT")));
+        grant(PermissionCodes.PRIVILEGE_DELETE,
+                entry("/api/privileges/{id}", methods("DELETE")));
+        grant(PermissionCodes.PRIVILEGE_ASSIGN,
+                entry("/api/privileges/assign/url", methods("PATCH")),
+                entry("/api/privileges/remove/assess/url", methods("PATCH")));
 
-                entry("/api/user", methods("GET", "POST", "PUT", "PATCH", "DELETE")),
-                entry("/api/user/roleValues", methods("GET")),
-                entry("/api/user/{id}", methods("GET", "PUT", "DELETE")),
+        grant(PermissionCodes.URL_READ,
+                entry("/api/url", methods("GET")),
+                entry("/api/url/{id}", methods("GET")),
+                entry("/api/url/privilege/{id}", methods("GET")));
+        grant(PermissionCodes.URL_CREATE,
+                entry("/api/url", methods("POST")));
+        grant(PermissionCodes.URL_UPDATE,
+                entry("/api/url/{id}", methods("PUT")));
+        grant(PermissionCodes.URL_DELETE,
+                entry("/api/url/{id}", methods("DELETE")));
+
+        grant(PermissionCodes.MODULE_READ,
+                entry("/api/v1/modules", methods("GET")),
+                entry("/api/v1/modules/{moduleId}", methods("GET")),
+                entry("/api/v1/modules/active", methods("GET")));
+        grant(PermissionCodes.MODULE_MANAGE,
+                entry("/api/v1/modules/{moduleId}/enable", methods("POST")),
+                entry("/api/v1/modules/{moduleId}/disable", methods("POST")),
+                entry("/api/v1/modules/refresh", methods("POST")));
+
+        grant(PermissionCodes.AMBULANCE_CREATE,
+                entry("/api/v1/ambulance", methods("POST")));
+
+        // Keep legacy compatibility for endpoints that rely on generic authenticated user access.
+        grant(PermissionCodes.USER,
                 entry("/api/2fa/setup", methods("POST")),
                 entry("/api/2fa/activate", methods("POST")),
-                entry("/api/2fa/disable", methods("POST"))
-        );
-
-        adminEndpoints.forEach((endpoint, methods) -> addUrls(endpoint, methods, privilege));
+                entry("/api/2fa/disable", methods("POST")));
     }
 
-    private void seedUserUrls(final Privilege privilege) {
-        Map<String, String[]> userEndpoints = Map.of(
-                "/api/user", methods("GET"),
-                "/api/user/{id}", methods("GET"),
-                "/api/2fa/setup", methods("POST"),
-                "/api/2fa/activate", methods("POST"),
-                "/api/2fa/disable", methods("POST")
-        );
-        userEndpoints.forEach((endpoint, methods) -> addUrls(endpoint, methods, privilege));
+    @SafeVarargs
+    private void grant(final String privilegeName, final Map.Entry<String, String[]>... endpoints) {
+        final Privilege privilege = privilegeRepository.findByNameIgnoreCase(privilegeName).orElse(null);
+        if (privilege == null) {
+            log.warn("privilege {} missing, skipping url mapping", privilegeName);
+            return;
+        }
+        for (final Map.Entry<String, String[]> endpoint : endpoints) {
+            addUrls(endpoint.getKey(), endpoint.getValue(), privilege);
+        }
     }
 
     private void addUrls(final String endpoint, final String[] methods, final Privilege privilege) {
         for (final String method : methods) {
+            if (urlsRepository.existsByEndpointIgnoreCaseAndMethodIgnoreCase(endpoint, method)) {
+                continue;
+            }
             final Url url = new Url();
             url.setEndpoint(endpoint);
             url.setMethod(method);
             privilege.getUrls().add(url);
+            url.getPrivileges().add(privilege);
             urlsRepository.save(url);           // persist Url first to get an ID
             privilegeRepository.save(privilege);
         }

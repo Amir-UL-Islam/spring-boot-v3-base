@@ -25,3 +25,12 @@
 * URL-based ACL filter for dynamic permission checks
 * Method-level protection with `@PreAuthorize`
 * Stateless security with CORS support
+
+== Matrix Admin UI
+* Admin console: `/assets/admin/index.html`
+* Uses `/api/me/permissions` as capability source for role-aware UI rendering
+* Seed users for development: `superadmin`, `admin`, `user`
+
+== User Onboarding
+* See `USER_ONBOARDING.md` for role/permission onboarding and matrix extension steps
+

@@ -2,6 +2,7 @@ package com.security.base.core.urls;
 
 import com.security.base.core.privilege.model.entity.Privilege;
 import com.security.base.core.privilege.repository.PrivilegeRepository;
+import com.security.base.core.security.oauth.PermissionCodes;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,10 +37,11 @@ public class EndpointSync implements ApplicationRunner {
 
     @Override
     public void run(final ApplicationArguments args) {
-        final Privilege adminPrivilege = privilegeRepository.findByNameIgnoreCase("ADMIN")
+        final Privilege adminPrivilege = privilegeRepository.findByNameIgnoreCase(PermissionCodes.MATRIX_MANAGE)
+                .or(() -> privilegeRepository.findByNameIgnoreCase(PermissionCodes.ADMIN))
                 .orElse(null);
         if (adminPrivilege == null) {
-            log.warn("ADMIN privilege missing; skipping endpoint sync");
+            log.warn("MATRIX_MANAGE/ADMIN privilege missing; skipping endpoint sync");
             return;
         }
 

@@ -47,13 +47,15 @@ public class RoleLoader implements ApplicationRunner {
                         PermissionCodes.USER_READ,
                         PermissionCodes.USER_CREATE,
                         PermissionCodes.USER_UPDATE,
+                        PermissionCodes.USER_DELETE,
                         PermissionCodes.ROLE_READ,
                         PermissionCodes.PRIVILEGE_READ,
                         PermissionCodes.URL_READ,
                         PermissionCodes.MODULE_READ,
                         PermissionCodes.MATRIX_READ,
                         PermissionCodes.AMBULANCE_READ,
-                        PermissionCodes.AMBULANCE_CREATE
+                        PermissionCodes.AMBULANCE_CREATE,
+                        PermissionCodes.AMBULANCE_UPDATE
                 ));
 
         upsertRole(UserRoles.USER, "Basic User",

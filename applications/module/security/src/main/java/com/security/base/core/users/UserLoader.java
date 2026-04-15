@@ -51,6 +51,13 @@ public class UserLoader implements ApplicationRunner {
                 "admin123!",
                 Set.of(UserRoles.ADMIN)
         );
+        upsertUser(
+                "user",
+                "user@local.dev",
+                "Standard User",
+                "user123!",
+                Set.of(UserRoles.USER)
+        );
     }
 
     private void upsertUser(final String username,

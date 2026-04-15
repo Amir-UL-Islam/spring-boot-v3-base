@@ -86,6 +86,10 @@ function hideCards() {
   cards.forEach((card) => card.classList.add("hidden"));
 }
 
+function hasAdminConsoleAccess() {
+  return ["user:read", "role:read", "privilege:read", "url:read"].some((permission) => permissions.can(permission));
+}
+
 async function login(event) {
   event.preventDefault();
   try {
@@ -455,6 +459,16 @@ async function refreshAll() {
   }
   try {
     await loadMyPermissions();
+    if (!hasAdminConsoleAccess()) {
+      ui.matrixCard.classList.remove("hidden");
+      ui.toolbar.classList.remove("hidden");
+      ui.usersCard.classList.add("hidden");
+      ui.rolesCard.classList.add("hidden");
+      ui.privilegesCard.classList.add("hidden");
+      ui.urlsCard.classList.add("hidden");
+      renderAuthOutput("Signed in with non-admin role. Matrix view only.");
+      return;
+    }
     await loadRoleValues();
     await loadPrivilegeValues();
     await loadUsers();

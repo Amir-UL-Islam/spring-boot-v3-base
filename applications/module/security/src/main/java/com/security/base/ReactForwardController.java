@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ReactForwardController {
 
-    @GetMapping("{path:^(?!api|public|css|js|images|swagger)[^\\.]*}/**")
+    // Keep static asset paths out of SPA forwarding so admin console files are served directly.
+    @GetMapping("{path:^(?!api|public|assets|css|js|images|swagger|v3)[^.]*}/**")
     public String handleForward() {
         return "forward:/";
     }

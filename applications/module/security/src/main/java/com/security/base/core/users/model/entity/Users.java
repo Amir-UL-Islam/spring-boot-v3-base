@@ -61,10 +61,16 @@ public class Users extends BaseEntity implements UserDetails, RestEntity {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         final Set<GrantedAuthority> authorities = new LinkedHashSet<>();
         role.forEach(userRole -> {
+            if (userRole == null || userRole.getName() == null) {
+                return;
+            }
             // Keep role projection for legacy guards while migrating to fine-grained authorities.
             authorities.add(new SimpleGrantedAuthority("ROLE_" + userRole.getName()));
-            userRole.getPrivilege().forEach(privilege ->
-                    authorities.add(new SimpleGrantedAuthority(privilege.getName())));
+            userRole.getPrivilege().forEach(privilege -> {
+                if (privilege != null && privilege.getName() != null) {
+                    authorities.add(new SimpleGrantedAuthority(privilege.getName()));
+                }
+            });
         });
         return authorities;
     }

@@ -1,20 +1,48 @@
+== Security Module Guide
 
-== Step 1
-* Matchers:
-** antMatchers: Matches based on the Ant-style patterns (e.g., /admin/**).
-** mvcMatchers: Matches paths based on Spring MVC's PathPatternParser.
+=== Authorization Model
+* Primary model: RBAC with first-class matrix permissions (`resource:action`).
+* Effective authority flow: `User -> Role -> Privilege`.
+* URL ACL flow: `Url(endpoint, method) -> Privilege`.
 
-{blank} +
+=== Core Permission Convention
+* Use lower-case action codes, for example:
+** `user:read`, `user:create`, `user:update`, `user:delete`
+** `role:read`, `role:create`, `role:update`, `role:delete`
+** `privilege:read`, `privilege:assign`
+** `url:read`, `module:manage`, `matrix:read`
 
-* Access Methods:
-** permitAll(): Allows access to everyone.
-** hasRole(String): Checks if the user has a specific role (role names should start without the ROLE_ prefix in configuration but will be prefixed internally).
-** hasAuthority(String): Checks if the user has a specific authority.
-** hasAnyRole(String...): Allows access if the user has any one of the specified roles.
-** authenticated(): Requires the user to be logged in.
+=== Runtime Enforcement Layers
+* HTTP security chain authenticates bearer JWT and enforces stateless access.
+* `ACLFilter` validates request URI + method against DB-mapped privileges.
+* Controller methods enforce business actions with `@PreAuthorize(hasAuthority(...))`.
 
-== Step 2
-* Static Mapping
-** CSS, JS, etc
-* Role Based
-* Dynamic Mapping
+=== Seeded Baseline (Development)
+* Privileges are seeded by `PrivilegeLoader`.
+* Roles are seeded by `RoleLoader`.
+* URL-to-privilege mappings are seeded by `UrlsLoader` and synced by `EndpointSync`.
+* Users are seeded by `UserLoader`:
+** `superadmin` (SUPER_ADMIN)
+** `admin` (ADMIN)
+** `user` (USER)
+
+=== Matrix Capability API
+* Endpoint: `GET /api/me/permissions`
+* Returns:
+** current user identity
+** assigned roles
+** flattened authorities
+** matrix grouped by resource and action
+
+=== Admin Console
+* Path: `/assets/admin/index.html`
+* Uses matrix authorities from `/api/me/permissions` to show/hide actions.
+* Superadmin/admin get management screens according to granted permissions.
+
+=== Extending Security
+1. Add permission constant in `PermissionCodes`.
+2. Add seed in `PrivilegeLoader`.
+3. Attach to role(s) in `RoleLoader`.
+4. Map endpoint+method in `UrlsLoader`.
+5. Enforce with `@PreAuthorize` in controller/service.
+6. Use `permissions.can("resource:action")` in admin UI.
