@@ -34,3 +34,8 @@
 == User Onboarding
 * See `USER_ONBOARDING.md` for role/permission onboarding and matrix extension steps
 
+== Policy-First Smoke Test
+* Script: `./smoke-policy-first.sh`
+* Validates login, matrix endpoint, policy diagnostics authorization, and deny-by-default behavior for unknown API routes
+* Supports overrides through environment variables: `BASE_URL`, `SUPERADMIN_USER`, `SUPERADMIN_PASS`, `BASIC_USER`, `BASIC_PASS`
+

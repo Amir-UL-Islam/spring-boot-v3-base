@@ -57,3 +57,9 @@ modules:
     enabled: false
   # Add more module configurations as needed
 
+security:
+  policy:
+    drift:
+      enabled: true
+      fail-on-drift: false
+

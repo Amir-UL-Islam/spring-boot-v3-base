@@ -17,6 +17,7 @@ const ui = {
   toolbar: document.getElementById("toolbar"),
   identity: document.getElementById("identity"),
   matrixCard: document.getElementById("matrix-card"),
+  driftCard: document.getElementById("drift-card"),
   usersCard: document.getElementById("users-card"),
   rolesCard: document.getElementById("roles-card"),
   privilegesCard: document.getElementById("privileges-card"),
@@ -46,9 +47,22 @@ async function api(path, options = {}) {
     payload = text;
   }
   if (!response.ok) {
-    throw new Error(typeof payload === "string" ? payload : JSON.stringify(payload));
+    const message = typeof payload === "string" ? payload : JSON.stringify(payload);
+    const error = new Error(message);
+    error.status = response.status;
+    throw error;
   }
   return payload;
+}
+
+function parseErrorMessage(error) {
+  if (!error?.message) return "Unknown error";
+  try {
+    const parsed = JSON.parse(error.message);
+    return parsed?.message || parsed?.error || error.message;
+  } catch (_ignored) {
+    return error.message;
+  }
 }
 
 function renderAuthOutput(message, isError = false) {
@@ -77,17 +91,21 @@ function splitIds(value) {
 }
 
 function showCards() {
-  const cards = [ui.matrixCard, ui.usersCard, ui.rolesCard, ui.privilegesCard, ui.urlsCard, ui.toolbar];
+  const cards = [ui.matrixCard, ui.usersCard, ui.rolesCard, ui.privilegesCard, ui.urlsCard, ui.driftCard, ui.toolbar];
   cards.forEach((card) => card.classList.remove("hidden"));
 }
 
 function hideCards() {
-  const cards = [ui.matrixCard, ui.usersCard, ui.rolesCard, ui.privilegesCard, ui.urlsCard, ui.toolbar];
+  const cards = [ui.matrixCard, ui.usersCard, ui.rolesCard, ui.privilegesCard, ui.urlsCard, ui.driftCard, ui.toolbar];
   cards.forEach((card) => card.classList.add("hidden"));
 }
 
 function hasAdminConsoleAccess() {
   return ["user:read", "role:read", "privilege:read", "url:read"].some((permission) => permissions.can(permission));
+}
+
+function hasHardAdminAccess() {
+  return permissions.can("matrix:manage") || permissions.can("module:manage");
 }
 
 async function login(event) {
@@ -109,14 +127,14 @@ async function login(event) {
     renderAuthOutput("Login successful.");
     await refreshAll();
   } catch (error) {
-    renderAuthOutput(`Login failed: ${error.message}`, true);
+    renderAuthOutput(`Login failed: ${parseErrorMessage(error)}`, true);
   }
 }
 
 async function loadMyPermissions() {
   state.me = await api("/api/me/permissions");
   document.getElementById("roles").innerHTML = `<strong>Roles:</strong> ${renderBadges(state.me.roles)}`;
-  ui.identity.textContent = `Signed in as ${state.me.username}`;
+  ui.identity.textContent = `Signed in as ${state.me.username} (${(state.me.roles || []).join(", ") || "no-role"})`;
 
   const matrixBody = document.querySelector("#matrix-table tbody");
   matrixBody.innerHTML = "";
@@ -124,6 +142,42 @@ async function loadMyPermissions() {
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>${resource}</td><td>${renderBadges(Object.keys(actions))}</td>`;
     matrixBody.appendChild(tr);
+  });
+}
+
+async function loadPolicyDrift() {
+  if (!permissions.can("matrix:manage")) {
+    ui.driftCard.classList.add("hidden");
+    return;
+  }
+  ui.driftCard.classList.remove("hidden");
+
+  let report = null;
+  try {
+    report = await api("/api/policy/drift");
+  } catch (error) {
+    if (error.status === 403) {
+      ui.driftCard.classList.add("hidden");
+      return;
+    }
+    throw error;
+  }
+  const summary = document.getElementById("drift-summary");
+  summary.innerHTML = `<strong>Generated:</strong> ${report.generatedAt || "n/a"} | <strong>Issues:</strong> ${report.issueCount || 0}`;
+
+  const tbody = document.querySelector("#drift-table tbody");
+  tbody.innerHTML = "";
+  (report.issues || []).forEach((issue) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="badge ${issue.severity === "ERROR" ? "badge-danger" : "badge-warn"}">${issue.severity || "WARN"}</span></td>
+      <td>${issue.type || ""}</td>
+      <td>${issue.method || ""}</td>
+      <td>${issue.endpoint || ""}</td>
+      <td>${issue.authority || ""}</td>
+      <td>${issue.details || ""}</td>
+    `;
+    tbody.appendChild(tr);
   });
 }
 
@@ -462,6 +516,7 @@ async function refreshAll() {
     if (!hasAdminConsoleAccess()) {
       ui.matrixCard.classList.remove("hidden");
       ui.toolbar.classList.remove("hidden");
+      ui.driftCard.classList.add("hidden");
       ui.usersCard.classList.add("hidden");
       ui.rolesCard.classList.add("hidden");
       ui.privilegesCard.classList.add("hidden");
@@ -469,15 +524,43 @@ async function refreshAll() {
       renderAuthOutput("Signed in with non-admin role. Matrix view only.");
       return;
     }
-    await loadRoleValues();
-    await loadPrivilegeValues();
-    await loadUsers();
-    await loadRoles();
-    await loadPrivileges();
-    await loadUrls();
+
+    const issues = [];
+    const loadGuarded = async (title, fn) => {
+      try {
+        await fn();
+      } catch (error) {
+        if (error.status === 403) {
+          issues.push(`${title}: forbidden by current policy`);
+          return;
+        }
+        throw error;
+      }
+    };
+
+    await loadGuarded("Role values", loadRoleValues);
+    await loadGuarded("Privilege values", loadPrivilegeValues);
+    await loadGuarded("Users", loadUsers);
+    await loadGuarded("Roles", loadRoles);
+    await loadGuarded("Privileges", loadPrivileges);
+    await loadGuarded("URL policies", loadUrls);
+    await loadGuarded("Policy drift", loadPolicyDrift);
+
     showCards();
+    const modeLabel = hasHardAdminAccess() ? "policy-admin" : "admin";
+    if (issues.length > 0) {
+      renderAuthOutput(`Signed in (${modeLabel}) with partial access. ${issues.join(" | ")}`);
+    } else {
+      renderAuthOutput(`Signed in (${modeLabel}).`);
+    }
   } catch (error) {
-    renderAuthOutput(`Session error: ${error.message}`, true);
+    const message = parseErrorMessage(error);
+    if (error.status === 401) {
+      logout();
+      renderAuthOutput("Session expired. Please sign in again.", true);
+      return;
+    }
+    renderAuthOutput(`Session error: ${message}`, true);
     hideCards();
   }
 }

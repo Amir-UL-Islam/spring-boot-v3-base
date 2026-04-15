@@ -44,6 +44,8 @@ public class UrlsLoader implements ApplicationRunner {
     private void seedMatrixUrls() {
         grant(PermissionCodes.MATRIX_READ,
                 entry("/api/me/permissions", methods("GET")));
+        grant(PermissionCodes.MATRIX_MANAGE,
+                entry("/api/policy/drift", methods("GET")));
 
         grant(PermissionCodes.USER_READ,
                 entry("/api/user", methods("GET")),

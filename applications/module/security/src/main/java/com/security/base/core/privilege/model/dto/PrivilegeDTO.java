@@ -4,6 +4,7 @@ import com.problemfighter.java.oc.annotation.DataMappingInfo;
 import com.problemfighter.pfspring.restapi.inter.model.RestDTO;
 import com.hmtmcse.module.dto.BaseDTO;
 import com.security.base.core.privilege.model.mapper.PrivilegeInterceptor;
+import com.security.base.core.privilege.PermissionCodeFormat;
 import com.security.base.core.privilege.PrivilegeNameUnique;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,6 +20,7 @@ public class PrivilegeDTO extends BaseDTO implements RestDTO {
     @NotNull
     @Size(max = 255)
     @PrivilegeNameUnique
+    @PermissionCodeFormat
     private String name;
 
 }

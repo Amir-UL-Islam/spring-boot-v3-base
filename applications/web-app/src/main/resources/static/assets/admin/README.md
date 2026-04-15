@@ -13,6 +13,7 @@ This lightweight UI is served by Spring Boot at:
 - Manage Roles (`/api/roles`)
 - Manage Privileges (`/api/privileges`)
 - Manage URL mappings (`/api/url`)
+- View policy drift diagnostics (`/api/policy/drift`)
 
 ## Seeded dev users
 
@@ -27,4 +28,5 @@ These are created by `UserLoader` and intended for development mode only.
 - UI action visibility is controlled by `permissions.can("resource:action")`.
 - Superadmin/admin receive management sections according to authorities.
 - Non-admin roles can sign in and view their matrix but do not get full management screens.
+- Drift diagnostics are visible only with `matrix:manage` authority.
 

@@ -1,7 +1,6 @@
 package com.security.base.core.users.controller;
 
 import com.security.base.core.role.service.RoleService;
-import com.security.base.core.security.oauth.PermissionCodes;
 import com.security.base.core.users.model.dto.UsersDTO;
 import com.security.base.core.users.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,9 +18,9 @@ import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,7 +67,6 @@ public class UsersController {
             }
     )
     @GetMapping
-    @PreAuthorize("hasAuthority('" + PermissionCodes.USER_READ + "')")
     public ResponseEntity<Page<UsersDTO>> getAllUsers(
             @RequestParam(name = "filter", required = false) final String filter,
             @Parameter(hidden = true) @SortDefault(sort = "id") @PageableDefault(size = 20) final Pageable pageable) {
@@ -76,21 +74,18 @@ public class UsersController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.USER_READ + "')")
     public ResponseEntity<UsersDTO> getUsers(@PathVariable(name = "id") final Long id) {
         return ResponseEntity.ok(usersService.get(id));
     }
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.USER_CREATE + "')")
     public ResponseEntity<Long> createUsers(@RequestBody @Valid final UsersDTO usersDTO) {
         final Long createdId = usersService.create(usersDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.USER_UPDATE + "')")
     public ResponseEntity<Long> updateUsers(@PathVariable(name = "id") final Long id,
             @RequestBody @Valid final UsersDTO usersDTO) {
         usersService.update(id, usersDTO);
@@ -99,14 +94,12 @@ public class UsersController {
 
     @DeleteMapping("/{id}")
     @ApiResponse(responseCode = "204")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.USER_DELETE + "')")
     public ResponseEntity<Void> deleteUsers(@PathVariable(name = "id") final Long id) {
         usersService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/roleValues")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.ROLE_READ + "')")
     public ResponseEntity<Map<Long, String>> getRoleValues() {
         return ResponseEntity.ok(roleService.getRoleValues());
     }

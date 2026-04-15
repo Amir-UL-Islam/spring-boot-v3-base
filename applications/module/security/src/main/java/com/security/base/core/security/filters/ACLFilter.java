@@ -35,12 +35,24 @@ public class ACLFilter extends OncePerRequestFilter {
 
         String urlPattern = request.getRequestURI();
 
+        // Policy-first ACL is only for API routes; keep static/public assets accessible.
+        if (!urlPattern.startsWith("/api")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (PUBLIC_PATHS.stream().anyMatch(urlPattern::startsWith)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (authentication != null && !permissionService.hasPermission(authentication, request)) {
+        if (authentication == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Unauthorized");
+            return;
+        }
+
+        if (!permissionService.hasPermission(authentication, request)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("Access Denied: You do not have permission to access this resource");
             return;

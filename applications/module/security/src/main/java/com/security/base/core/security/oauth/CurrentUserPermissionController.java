@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +32,6 @@ public class CurrentUserPermissionController {
 
     @GetMapping("/permissions")
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('" + PermissionCodes.MATRIX_READ + "')")
     public ResponseEntity<Map<String, Object>> myPermissions(final Authentication authentication) {
         final Users user = usersRepository.findByUsernameIgnoreCase(authentication.getName());
         if (user == null) {

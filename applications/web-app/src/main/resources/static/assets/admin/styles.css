@@ -123,6 +123,16 @@ pre {
     font-size: 12px;
 }
 
+.badge-warn {
+    background: #fff3cd;
+    color: #8a6d3b;
+}
+
+.badge-danger {
+    background: #fde8e8;
+    color: #9b1c1c;
+}
+
 .actions {
     display: flex;
     gap: 6px;

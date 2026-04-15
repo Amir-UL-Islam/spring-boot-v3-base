@@ -32,7 +32,6 @@ public class ModuleAdminController {
 
     @GetMapping
     @Operation(summary = "List all modules", description = "Get all installed modules with their status")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_READ + "')")
     public ResponseEntity<List<ModuleDTO>> listModules() {
         List<Module> modules = moduleService.getAllModules();
         List<ModuleDTO> dtos = modules.stream()
@@ -43,7 +42,6 @@ public class ModuleAdminController {
 
     @GetMapping("/{moduleId}")
     @Operation(summary = "Get module details", description = "Get detailed information about a specific module")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_READ + "')")
     public ResponseEntity<ModuleDTO> getModule(@PathVariable String moduleId) {
         Module module = moduleService.getModule(moduleId);
         if (module == null) {
@@ -54,7 +52,6 @@ public class ModuleAdminController {
 
     @GetMapping("/active")
     @Operation(summary = "List active modules", description = "Get all currently active (started) modules")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.MODULE_READ + "')")
     public ResponseEntity<List<ModuleDTO>> listActiveModules() {
         List<Module> modules = moduleService.getStartedModules();
         List<ModuleDTO> dtos = modules.stream()

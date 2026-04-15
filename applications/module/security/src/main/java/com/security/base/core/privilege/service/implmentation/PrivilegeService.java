@@ -97,14 +97,23 @@ public class PrivilegeService implements RequestResponse {
         String urlPattern = request.getRequestURI();
 
 
+        // Policy-first applies to API routes. Static assets and non-API routes are handled elsewhere.
+        if (!urlPattern.startsWith("/api")) {
+            return true;
+        }
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+
         String httpMethod = request.getMethod();
 
         // Find permissions for this URL and method
         List<Privilege> permissions = privilegeRepository.findByUrlPatternAndHttpMethod(urlPattern, httpMethod);
 
-        // If no URL policy exists, defer to method-level security annotations.
+        // Policy-first mode: explicit URL policy is required for every API endpoint.
         if (permissions.isEmpty()) {
-            return true;
+            return false;
         }
 
         // Get user authorities

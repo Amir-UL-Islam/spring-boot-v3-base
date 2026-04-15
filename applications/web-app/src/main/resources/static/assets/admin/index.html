@@ -45,6 +45,25 @@
         </table>
     </section>
 
+    <section class="card hidden" id="drift-card">
+        <h2>Policy Drift Diagnostics</h2>
+        <p class="hint">Visible to matrix administrators. Helps detect mismatches between endpoint annotations and URL policy mappings.</p>
+        <div id="drift-summary"></div>
+        <table class="data-table" id="drift-table">
+            <thead>
+            <tr>
+                <th>Severity</th>
+                <th>Type</th>
+                <th>Method</th>
+                <th>Endpoint</th>
+                <th>Authority</th>
+                <th>Details</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
     <section class="card hidden" id="users-card">
         <h2>Users</h2>
         <form id="create-user-form" class="grid-form"></form>

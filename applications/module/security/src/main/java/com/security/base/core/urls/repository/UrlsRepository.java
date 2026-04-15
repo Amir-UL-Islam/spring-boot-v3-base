@@ -22,6 +22,9 @@ public interface UrlsRepository extends JpaRepository<Url, Long> {
     @Query("SELECT u FROM Url u JOIN u.privileges p WHERE p.id = :id")
     Set<Url> findAllByPrivilegeId(Long id);
 
+    @EntityGraph(attributePaths = {"privileges"})
+    Optional<Url> findByEndpointIgnoreCaseAndMethodIgnoreCase(String endpoint, String method);
+
     boolean existsByEndpointIgnoreCase(String endpoint);
 
     boolean existsByEndpointIgnoreCaseAndMethodIgnoreCase(String endpoint, String method);

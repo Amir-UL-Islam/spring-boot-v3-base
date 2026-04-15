@@ -34,6 +34,17 @@
 ** flattened authorities
 ** matrix grouped by resource and action
 
+=== Policy Drift Tooling
+* Startup checker: `PolicyDriftStartupCheck`
+* Runtime report API: `GET /api/policy/drift`
+* Drift detector validates:
+** `@PreAuthorize(hasAuthority(...))` permission format
+** controller authority vs URL policy mapping consistency
+** undeclared permission code warnings for policy convention drift
+* Config flags in `application.yml`:
+** `security.policy.drift.enabled`
+** `security.policy.drift.fail-on-drift`
+
 === Admin Console
 * Path: `/assets/admin/index.html`
 * Uses matrix authorities from `/api/me/permissions` to show/hide actions.

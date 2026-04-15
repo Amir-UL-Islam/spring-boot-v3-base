@@ -1,7 +1,6 @@
 package com.security.base.core.urls.controller;
 
 import com.security.base.core.privilege.service.implmentation.PrivilegeService;
-import com.security.base.core.security.oauth.PermissionCodes;
 import com.security.base.core.urls.model.dto.UrlDTO;
 import com.security.base.core.urls.service.UrlService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +21,6 @@ import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,7 +69,6 @@ public class UrlController {
     )
     @GetMapping
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('" + PermissionCodes.URL_READ + "')")
     public ResponseEntity<Page<UrlDTO>> getAllUrls(
             @RequestParam(name = "filter", required = false) final String filter,
             @Parameter(hidden = true) @SortDefault(sort = "id") @PageableDefault(size = 20) final Pageable pageable) {
@@ -79,28 +76,24 @@ public class UrlController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.URL_READ + "')")
     public ResponseEntity<UrlDTO> getUrls(@PathVariable final Long id) {
         return ResponseEntity.ok(urlsService.get(id));
     }
 
     @GetMapping("/privilege/{id}")
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('" + PermissionCodes.URL_READ + "')")
     public ResponseEntity<Set<UrlDTO>> getByPrivilegeId(@PathVariable final Long id) {
         return ResponseEntity.ok(urlsService.getByPrivilege(id));
     }
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.URL_CREATE + "')")
     public ResponseEntity<Long> createUrls(@RequestBody @Valid final UrlDTO urlsDTO) {
         final Long createdId = urlsService.create(urlsDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.URL_UPDATE + "')")
     public ResponseEntity<Long> updateUrls(@PathVariable final Long id,
                                            @RequestBody @Valid final UrlDTO urlsDTO) {
         urlsService.update(id, urlsDTO);
@@ -110,14 +103,12 @@ public class UrlController {
     @DeleteMapping("/{id}")
     @ApiResponse(responseCode = "204")
     @Transactional
-    @PreAuthorize("hasAuthority('" + PermissionCodes.URL_DELETE + "')")
     public ResponseEntity<Void> deleteUrls(@PathVariable final Long id) {
         urlsService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/privilegeValues")
-    @PreAuthorize("hasAuthority('" + PermissionCodes.PRIVILEGE_READ + "')")
     public ResponseEntity<Map<Long, String>> getPrivilegeValues() {
         return ResponseEntity.ok(privilegeService.getPrivilegeValues());
     }
