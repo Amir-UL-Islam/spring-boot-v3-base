@@ -1,11 +1,16 @@
-package com.security.base.core.security.oauth;
+package com.security.base.core.security.oauth.controller;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.security.base.core.role.repository.RoleRepository;
+import com.security.base.core.security.mfa.LoginMfaService;
+import com.security.base.core.security.mfa.otp.dto.OtpChallengeResponse;
 import com.security.base.core.security.jwt.CustomUserDetailsService;
 import com.security.base.core.security.jwt.JwtTokenService;
 import com.security.base.core.security.jwt.RefreshTokenRequest;
-import com.security.base.core.security.two_fa.TwoFactorService;
+import com.security.base.core.security.oauth.UserRoles;
+import com.security.base.core.security.oauth.dto.AuthenticationRequest;
+import com.security.base.core.security.oauth.dto.AuthenticationResponse;
+import com.security.base.core.security.oauth.dto.AuthenticationSocialRequest;
 import com.security.base.core.users.model.entity.Users;
 import com.security.base.core.users.repository.UsersRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,7 +54,7 @@ public class AuthenticationController {
     private final UsersRepository usersRepository;
     private final String baseHost;
     private final RoleRepository roleRepository;
-    private final TwoFactorService twoFactorService;
+    private final LoginMfaService loginMfaService;
     private final RestClient googleClient = RestClient.builder()
             .baseUrl("https://oauth2.googleapis.com/")
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -62,7 +67,7 @@ public class AuthenticationController {
             final UsersRepository usersRepository,
             @Value("${app.baseHost}") final String baseHost,
             final RoleRepository roleRepository,
-            final TwoFactorService twoFactorService
+            final LoginMfaService loginMfaService
     ) {
         this.authenticationProvider = authenticationProvider;
         this.customUserDetailsService = customUserDetailsService;
@@ -71,7 +76,7 @@ public class AuthenticationController {
         this.usersRepository = usersRepository;
         this.baseHost = baseHost;
         this.roleRepository = roleRepository;
-        this.twoFactorService = twoFactorService;
+        this.loginMfaService = loginMfaService;
     }
 
     @PostMapping("/authenticate")
@@ -85,7 +90,15 @@ public class AuthenticationController {
         }
 
         final Users userDetails = customUserDetailsService.loadUserByUsername(authenticationRequest.getUsername());
-        enforceTwoFactor(authenticationRequest.getOtp(), userDetails.getUsername());
+        final var challenge = loginMfaService.enforceLoginMfa(
+                userDetails,
+                authenticationRequest.getOtp(),
+                authenticationRequest.getChallengeId(),
+                authenticationRequest.getOtpChannel()
+        );
+        if (challenge.isPresent()) {
+            return buildMfaChallengeResponse(challenge.get());
+        }
         return buildAuthenticationResponse(userDetails, "direct", null, null);
     }
 
@@ -95,7 +108,9 @@ public class AuthenticationController {
             @RequestParam("username") final String username,
             @RequestParam("password") final String password,
             @RequestParam(value = "scope", required = false) final String scope,
-            @RequestParam(value = "otp", required = false) final String otp) {
+            @RequestParam(value = "otp", required = false) final String otp,
+            @RequestParam(value = "otp_channel", required = false) final String otpChannel,
+            @RequestParam(value = "challenge_id", required = false) final String challengeId) {
         try {
             authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         } catch (final BadCredentialsException ex) {
@@ -103,7 +118,16 @@ public class AuthenticationController {
         }
 
         final Users userDetails = customUserDetailsService.loadUserByUsername(username);
-        enforceTwoFactor(otp, userDetails.getUsername());
+        final var challenge = loginMfaService.enforceLoginMfa(
+                userDetails,
+                otp,
+                challengeId,
+                otpChannel
+        );
+        if (challenge.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "MFA challenge required. Use /authenticate JSON flow for challenge lifecycle.");
+        }
         final String accessToken = jwtTokenService.generateAccessToken(userDetails, "direct", null);
         final String refreshToken = jwtTokenService.generateRefreshToken(userDetails, "direct", null);
 
@@ -131,8 +155,14 @@ public class AuthenticationController {
             }
             users = new Users();
             users.setEmail(subject);
+            users.setPhone("");
             users.setUsername(subject);
             users.setName(tokeninfoResponse.get("name").toString());
+            users.setEmailVerified(true);
+            users.setPhoneVerified(false);
+            users.setAccountEnabled(true);
+            users.setSmsMfaEnabled(false);
+            users.setEmailMfaEnabled(false);
             // assign least-privileged default role for social login onboarding
             users.setRole(Set.of(userRole));
             users.setTokenVersion(1);
@@ -180,6 +210,17 @@ public class AuthenticationController {
                 jwtTokenService.generateAccessToken(userDetails, loginType, accessTokenValidity));
         authenticationResponse.setRefreshToken(
                 jwtTokenService.generateRefreshToken(userDetails, loginType, refreshTokenValidity));
+        authenticationResponse.setRequiresMfa(false);
+        return authenticationResponse;
+    }
+
+    private AuthenticationResponse buildMfaChallengeResponse(final OtpChallengeResponse challenge) {
+        final AuthenticationResponse authenticationResponse = new AuthenticationResponse();
+        authenticationResponse.setRequiresMfa(true);
+        authenticationResponse.setMfaChallengeId(challenge.getChallengeId());
+        authenticationResponse.setMfaChannel(challenge.getFactor().name());
+        authenticationResponse.setMfaMessage(challenge.getMessage());
+        authenticationResponse.setMfaExpiresInSeconds(challenge.getExpiresInSeconds());
         return authenticationResponse;
     }
 
@@ -221,13 +262,5 @@ public class AuthenticationController {
         return synchronizeUserAndGetToken(providerId, subject, tokenInfoResponse, expiresAt);
     }
 
-    private void enforceTwoFactor(final String otp, final String username) {
-        final Users users = usersRepository.findByUsernameIgnoreCase(username);
-        if (Boolean.TRUE.equals(users.getTwoFactorEnabled())) {
-            if (!twoFactorService.isCodeValid(users.getTotpSecret(), otp)) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or missing 2FA code");
-            }
-        }
-    }
 
 }

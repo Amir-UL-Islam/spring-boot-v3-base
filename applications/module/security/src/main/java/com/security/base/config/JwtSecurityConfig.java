@@ -83,6 +83,7 @@ public class JwtSecurityConfig {
                                 "/oauth/token",
                                 "/refresh-token",
                                 "/register",
+                                "/register/**",
                                 "/",
                                 "/index.html",
                                 "/static/**",

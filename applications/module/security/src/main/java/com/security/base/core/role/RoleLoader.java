@@ -53,6 +53,11 @@ public class RoleLoader implements ApplicationRunner {
                         PermissionCodes.URL_READ,
                         PermissionCodes.MODULE_READ,
                         PermissionCodes.MATRIX_READ,
+                        PermissionCodes.POLICY_READ,
+                        PermissionCodes.POLICY_MANAGE,
+                        PermissionCodes.MFA_MANAGE,
+                        PermissionCodes.MFA_CHALLENGE,
+                        PermissionCodes.MFA_VERIFY,
                         PermissionCodes.AMBULANCE_READ,
                         PermissionCodes.AMBULANCE_CREATE,
                         PermissionCodes.AMBULANCE_UPDATE
@@ -63,6 +68,9 @@ public class RoleLoader implements ApplicationRunner {
                         PermissionCodes.USER,
                         PermissionCodes.USER_READ,
                         PermissionCodes.MATRIX_READ,
+                        PermissionCodes.MFA_MANAGE,
+                        PermissionCodes.MFA_CHALLENGE,
+                        PermissionCodes.MFA_VERIFY,
                         PermissionCodes.AMBULANCE_READ,
                         PermissionCodes.AMBULANCE_CREATE
                 ));

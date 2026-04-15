@@ -38,6 +38,13 @@ public final class PermissionCodes {
     public static final String MATRIX_READ = "matrix:read";
     public static final String MATRIX_MANAGE = "matrix:manage";
 
+    public static final String POLICY_READ = "policy:read";
+    public static final String POLICY_MANAGE = "policy:manage";
+
+    public static final String MFA_MANAGE = "mfa:manage";
+    public static final String MFA_CHALLENGE = "mfa:challenge";
+    public static final String MFA_VERIFY = "mfa:verify";
+
     public static final String MODULE_READ = "module:read";
     public static final String MODULE_MANAGE = "module:manage";
 
@@ -71,6 +78,11 @@ public final class PermissionCodes {
             URL_DELETE,
             MATRIX_READ,
             MATRIX_MANAGE,
+            POLICY_READ,
+            POLICY_MANAGE,
+            MFA_MANAGE,
+            MFA_CHALLENGE,
+            MFA_VERIFY,
             MODULE_READ,
             MODULE_MANAGE,
             AMBULANCE_READ,

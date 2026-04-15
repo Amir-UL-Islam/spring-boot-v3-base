@@ -19,8 +19,17 @@
             <label>Username <input id="username" value="superadmin"></label>
             <label>Password <input id="password" type="password" value="superadmin123!"></label>
             <label>OTP (optional) <input id="otp"></label>
+            <label>OTP Channel
+                <select id="otp-channel">
+                    <option value="">Auto</option>
+                    <option value="TOTP">TOTP</option>
+                    <option value="SMS">SMS</option>
+                    <option value="EMAIL">EMAIL</option>
+                </select>
+            </label>
             <button type="submit">Sign In</button>
         </form>
+        <p class="hint" id="mfa-challenge-hint"></p>
         <p class="hint">Dev seed users: <code>superadmin/superadmin123!</code>, <code>admin/admin123!</code>, <code>user/user123!</code></p>
         <pre id="auth-output"></pre>
     </section>
@@ -64,6 +73,12 @@
         </table>
     </section>
 
+    <section class="card hidden" id="policy-card">
+        <h2>Runtime Security Policy</h2>
+        <p class="hint">Controls registration verification channels and role-aware MFA factor policies.</p>
+        <form id="policy-form" class="grid-form"></form>
+    </section>
+
     <section class="card hidden" id="users-card">
         <h2>Users</h2>
         <form id="create-user-form" class="grid-form"></form>
@@ -74,6 +89,8 @@
                 <th>Username</th>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Phone</th>
+                <th>MFA</th>
                 <th>Roles</th>
                 <th>Actions</th>
             </tr>

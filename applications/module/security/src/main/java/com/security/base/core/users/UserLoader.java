@@ -5,8 +5,10 @@ import com.security.base.core.role.repository.RoleRepository;
 import com.security.base.core.security.oauth.UserRoles;
 import com.security.base.core.users.model.entity.Users;
 import com.security.base.core.users.repository.UsersRepository;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -40,6 +42,7 @@ public class UserLoader implements ApplicationRunner {
         upsertUser(
                 "superadmin",
                 "superadmin@local.dev",
+                "01700000002",
                 "Super Admin",
                 "superadmin123!",
                 Set.of(UserRoles.SUPER_ADMIN)
@@ -47,6 +50,7 @@ public class UserLoader implements ApplicationRunner {
         upsertUser(
                 "admin",
                 "admin@local.dev",
+                "01700000001",
                 "Administrator",
                 "admin123!",
                 Set.of(UserRoles.ADMIN)
@@ -54,6 +58,7 @@ public class UserLoader implements ApplicationRunner {
         upsertUser(
                 "user",
                 "user@local.dev",
+                "01700000000",
                 "Standard User",
                 "user123!",
                 Set.of(UserRoles.USER)
@@ -62,6 +67,7 @@ public class UserLoader implements ApplicationRunner {
 
     private void upsertUser(final String username,
                             final String email,
+                            final String phone,
                             final String name,
                             final String rawPassword,
                             final Set<String> roleNames) {
@@ -72,9 +78,16 @@ public class UserLoader implements ApplicationRunner {
         }
 
         user.setEmail(email);
+        user.setPhone(phone);
         user.setName(name);
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setTwoFactorEnabled(false);
+        user.setSmsMfaEnabled(false);
+        user.setEmailMfaEnabled(false);
+        user.setPreferredMfaFactor(null);
+        user.setEmailVerified(true);
+        user.setPhoneVerified(true);
+        user.setAccountEnabled(true);
 
         final Set<Role> roles = new LinkedHashSet<>();
         roleNames.forEach(roleName -> {

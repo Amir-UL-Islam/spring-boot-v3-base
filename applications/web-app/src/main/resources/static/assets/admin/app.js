@@ -1,6 +1,8 @@
 const state = {
   accessToken: localStorage.getItem("admin_access_token") || "",
   refreshToken: localStorage.getItem("admin_refresh_token") || "",
+  pendingChallengeId: "",
+  pendingChallengeChannel: "",
   me: null,
   rolesMap: {},
   privilegeMap: {},
@@ -18,6 +20,7 @@ const ui = {
   identity: document.getElementById("identity"),
   matrixCard: document.getElementById("matrix-card"),
   driftCard: document.getElementById("drift-card"),
+  policyCard: document.getElementById("policy-card"),
   usersCard: document.getElementById("users-card"),
   rolesCard: document.getElementById("roles-card"),
   privilegesCard: document.getElementById("privileges-card"),
@@ -91,21 +94,21 @@ function splitIds(value) {
 }
 
 function showCards() {
-  const cards = [ui.matrixCard, ui.usersCard, ui.rolesCard, ui.privilegesCard, ui.urlsCard, ui.driftCard, ui.toolbar];
+  const cards = [ui.matrixCard, ui.usersCard, ui.rolesCard, ui.privilegesCard, ui.urlsCard, ui.driftCard, ui.policyCard, ui.toolbar];
   cards.forEach((card) => card.classList.remove("hidden"));
 }
 
 function hideCards() {
-  const cards = [ui.matrixCard, ui.usersCard, ui.rolesCard, ui.privilegesCard, ui.urlsCard, ui.driftCard, ui.toolbar];
+  const cards = [ui.matrixCard, ui.usersCard, ui.rolesCard, ui.privilegesCard, ui.urlsCard, ui.driftCard, ui.policyCard, ui.toolbar];
   cards.forEach((card) => card.classList.add("hidden"));
 }
 
 function hasAdminConsoleAccess() {
-  return ["user:read", "role:read", "privilege:read", "url:read"].some((permission) => permissions.can(permission));
+  return ["user:read", "role:read", "privilege:read", "url:read", "policy:read"].some((permission) => permissions.can(permission));
 }
 
 function hasHardAdminAccess() {
-  return permissions.can("matrix:manage") || permissions.can("module:manage");
+  return permissions.can("matrix:manage") || permissions.can("module:manage") || permissions.can("policy:manage");
 }
 
 async function login(event) {
@@ -115,19 +118,91 @@ async function login(event) {
       username: document.getElementById("username").value,
       password: document.getElementById("password").value,
       otp: document.getElementById("otp").value || null,
+      otpChannel: document.getElementById("otp-channel").value || null,
+      challengeId: state.pendingChallengeId || null,
     };
     const response = await api("/authenticate", {
       method: "POST",
       body: JSON.stringify(body),
     });
+    if (response.requiresMfa) {
+      state.pendingChallengeId = response.mfaChallengeId || "";
+      state.pendingChallengeChannel = response.mfaChannel || "";
+      const hint = document.getElementById("mfa-challenge-hint");
+      hint.textContent = `MFA challenge required via ${response.mfaChannel || "selected channel"}. Enter OTP and submit again.`;
+      renderAuthOutput(response.mfaMessage || "MFA challenge issued.");
+      return;
+    }
+
     state.accessToken = response.accessToken;
     state.refreshToken = response.refreshToken;
+    state.pendingChallengeId = "";
+    state.pendingChallengeChannel = "";
+    document.getElementById("mfa-challenge-hint").textContent = "";
     localStorage.setItem("admin_access_token", state.accessToken);
     localStorage.setItem("admin_refresh_token", state.refreshToken || "");
     renderAuthOutput("Login successful.");
     await refreshAll();
   } catch (error) {
     renderAuthOutput(`Login failed: ${parseErrorMessage(error)}`, true);
+  }
+}
+
+async function loadPolicySettings() {
+  if (!permissions.can("policy:read")) {
+    ui.policyCard.classList.add("hidden");
+    return;
+  }
+  ui.policyCard.classList.remove("hidden");
+
+  const policy = await api("/api/security/policy");
+  const form = document.getElementById("policy-form");
+
+  const editable = permissions.can("policy:manage");
+  form.innerHTML = `
+    <label>Registration Allowed Channels (CSV)
+      <input id="policy-registration-allowed" value="${policy["registration.allowed.channels"] || "SMS,EMAIL"}" ${editable ? "" : "disabled"}>
+    </label>
+    <label>Registration Default Channel
+      <input id="policy-registration-default" value="${policy["registration.default.channel"] || "EMAIL"}" ${editable ? "" : "disabled"}>
+    </label>
+    <label>MFA Optional Per User
+      <input id="policy-mfa-optional" value="${policy["mfa.optional.per.user"] || "true"}" ${editable ? "" : "disabled"}>
+    </label>
+    <label>MFA Enforced Roles (CSV)
+      <input id="policy-mfa-roles" value="${policy["mfa.enforced.roles"] || ""}" ${editable ? "" : "disabled"}>
+    </label>
+    <label>MFA Allowed Factors USER
+      <input id="policy-factors-user" value="${policy["mfa.allowed.factors.user"] || "TOTP,SMS,EMAIL"}" ${editable ? "" : "disabled"}>
+    </label>
+    <label>MFA Allowed Factors ADMIN
+      <input id="policy-factors-admin" value="${policy["mfa.allowed.factors.admin"] || "TOTP,EMAIL"}" ${editable ? "" : "disabled"}>
+    </label>
+    <label>MFA Allowed Factors SUPER_ADMIN
+      <input id="policy-factors-super-admin" value="${policy["mfa.allowed.factors.super_admin"] || "TOTP,EMAIL"}" ${editable ? "" : "disabled"}>
+    </label>
+    ${editable ? '<button type="button" id="save-policy-btn">Save Policy</button>' : '<p class="hint">Missing policy:manage permission.</p>'}
+  `;
+
+  const saveBtn = document.getElementById("save-policy-btn");
+  if (saveBtn) {
+    saveBtn.onclick = async () => {
+      const payload = [
+        { key: "registration.allowed.channels", value: document.getElementById("policy-registration-allowed").value },
+        { key: "registration.default.channel", value: document.getElementById("policy-registration-default").value },
+        { key: "mfa.optional.per.user", value: document.getElementById("policy-mfa-optional").value },
+        { key: "mfa.enforced.roles", value: document.getElementById("policy-mfa-roles").value },
+        { key: "mfa.allowed.factors.user", value: document.getElementById("policy-factors-user").value },
+        { key: "mfa.allowed.factors.admin", value: document.getElementById("policy-factors-admin").value },
+        { key: "mfa.allowed.factors.super_admin", value: document.getElementById("policy-factors-super-admin").value },
+      ];
+      await api("/api/security/policy", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      renderAuthOutput("Policy updated.");
+      await loadPolicySettings();
+    };
   }
 }
 
@@ -211,8 +286,14 @@ async function loadUsers() {
   renderForm("create-user-form", permissions.can("user:create") ? `
     <label>Name <input id="new-user-name"></label>
     <label>Email <input id="new-user-email"></label>
+    <label>Phone <input id="new-user-phone"></label>
     <label>Username <input id="new-user-username"></label>
     <label>Password <input id="new-user-password" type="password"></label>
+    <label>Email Verified <input id="new-user-email-verified" type="checkbox"></label>
+    <label>Phone Verified <input id="new-user-phone-verified" type="checkbox"></label>
+    <label>SMS MFA Enabled <input id="new-user-sms-mfa" type="checkbox"></label>
+    <label>Email MFA Enabled <input id="new-user-email-mfa" type="checkbox"></label>
+    <label>Preferred MFA <input id="new-user-preferred-mfa" placeholder="TOTP/SMS/EMAIL"></label>
     <label>Role IDs (comma separated) <input id="new-user-role-ids" placeholder="10001,10002"></label>
     <button type="button" id="create-user-btn">Create User</button>
   ` : "<p class='hint'>Missing user:create permission.</p>");
@@ -228,6 +309,12 @@ async function loadUsers() {
       <td>${user.username || ""}</td>
       <td>${user.name || ""}</td>
       <td>${user.email || ""}</td>
+      <td>${user.phone || ""}</td>
+      <td>${renderBadges([
+        user.twoFactorEnabled ? "TOTP" : "",
+        user.smsMfaEnabled ? "SMS" : "",
+        user.emailMfaEnabled ? "EMAIL" : "",
+      ].filter(Boolean))}</td>
       <td>${renderBadges((user.role || []).map((roleId) => state.rolesMap[roleId] || roleId))}</td>
       <td class="actions"></td>
     `;
@@ -240,12 +327,28 @@ async function loadUsers() {
       btn.onclick = async () => {
         const name = prompt("Name", user.name || "") || user.name;
         const email = prompt("Email", user.email || "") || user.email;
+        const phone = prompt("Phone", user.phone || "") || user.phone;
         const username = prompt("Username", user.username || "") || user.username;
         const password = prompt("New password (required by API)", "changeme123!") || "changeme123!";
         const roleIds = prompt("Role IDs (comma separated)", (user.role || []).join(",")) || "";
+        const smsMfaEnabled = confirm("Enable SMS MFA?");
+        const emailMfaEnabled = confirm("Enable EMAIL MFA?");
+        const twoFactorEnabled = confirm("Enable TOTP MFA?");
+        const preferredMfaFactor = prompt("Preferred MFA (TOTP/SMS/EMAIL)", user.preferredMfaFactor || "") || user.preferredMfaFactor;
         await api(`/api/user/${user.id}`, {
           method: "PUT",
-          body: JSON.stringify({ name, email, username, password, role: splitIds(roleIds) }),
+          body: JSON.stringify({
+            name,
+            email,
+            phone,
+            username,
+            password,
+            role: splitIds(roleIds),
+            twoFactorEnabled,
+            smsMfaEnabled,
+            emailMfaEnabled,
+            preferredMfaFactor,
+          }),
         });
         await loadUsers();
       };
@@ -276,8 +379,14 @@ async function loadUsers() {
         body: JSON.stringify({
           name: document.getElementById("new-user-name").value,
           email: document.getElementById("new-user-email").value,
+          phone: document.getElementById("new-user-phone").value,
           username: document.getElementById("new-user-username").value,
           password: document.getElementById("new-user-password").value,
+          emailVerified: document.getElementById("new-user-email-verified").checked,
+          phoneVerified: document.getElementById("new-user-phone-verified").checked,
+          smsMfaEnabled: document.getElementById("new-user-sms-mfa").checked,
+          emailMfaEnabled: document.getElementById("new-user-email-mfa").checked,
+          preferredMfaFactor: document.getElementById("new-user-preferred-mfa").value,
           role: splitIds(document.getElementById("new-user-role-ids").value),
         }),
       });
@@ -521,6 +630,7 @@ async function refreshAll() {
       ui.rolesCard.classList.add("hidden");
       ui.privilegesCard.classList.add("hidden");
       ui.urlsCard.classList.add("hidden");
+      ui.policyCard.classList.add("hidden");
       renderAuthOutput("Signed in with non-admin role. Matrix view only.");
       return;
     }
@@ -544,6 +654,7 @@ async function refreshAll() {
     await loadGuarded("Roles", loadRoles);
     await loadGuarded("Privileges", loadPrivileges);
     await loadGuarded("URL policies", loadUrls);
+    await loadGuarded("Security policy", loadPolicySettings);
     await loadGuarded("Policy drift", loadPolicyDrift);
 
     showCards();
@@ -568,9 +679,12 @@ async function refreshAll() {
 function logout() {
   state.accessToken = "";
   state.refreshToken = "";
+  state.pendingChallengeId = "";
+  state.pendingChallengeChannel = "";
   state.me = null;
   localStorage.removeItem("admin_access_token");
   localStorage.removeItem("admin_refresh_token");
+  document.getElementById("mfa-challenge-hint").textContent = "";
   hideCards();
   renderAuthOutput("Signed out.");
 }

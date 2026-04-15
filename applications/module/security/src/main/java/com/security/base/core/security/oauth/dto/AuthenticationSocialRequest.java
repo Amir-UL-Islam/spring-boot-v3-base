@@ -1,4 +1,4 @@
-package com.security.base.core.security.oauth;
+package com.security.base.core.security.oauth.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

@@ -56,6 +56,13 @@ public class PrivilegeLoader implements ApplicationRunner {
         createIfMissing(PermissionCodes.MATRIX_READ);
         createIfMissing(PermissionCodes.MATRIX_MANAGE);
 
+        createIfMissing(PermissionCodes.POLICY_READ);
+        createIfMissing(PermissionCodes.POLICY_MANAGE);
+
+        createIfMissing(PermissionCodes.MFA_MANAGE);
+        createIfMissing(PermissionCodes.MFA_CHALLENGE);
+        createIfMissing(PermissionCodes.MFA_VERIFY);
+
         createIfMissing(PermissionCodes.AMBULANCE_READ);
         createIfMissing(PermissionCodes.AMBULANCE_CREATE);
         createIfMissing(PermissionCodes.AMBULANCE_UPDATE);

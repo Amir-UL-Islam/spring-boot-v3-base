@@ -34,6 +34,15 @@ public class Users extends BaseEntity implements UserDetails, RestEntity {
     @Column
     private String email;
 
+    @Column
+    private String phone;
+
+    @Column(nullable = false)
+    private Boolean emailVerified = false;
+
+    @Column(nullable = false)
+    private Boolean phoneVerified = false;
+
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -53,6 +62,18 @@ public class Users extends BaseEntity implements UserDetails, RestEntity {
 
     @Column
     private String totpSecret;
+
+    @Column(nullable = false)
+    private Boolean smsMfaEnabled = false;
+
+    @Column(nullable = false)
+    private Boolean emailMfaEnabled = false;
+
+    @Column
+    private String preferredMfaFactor;
+
+    @Column(nullable = false)
+    private Boolean accountEnabled = true;
 
     @Column(nullable = false)
     private int tokenVersion = 0;
@@ -93,6 +114,54 @@ public class Users extends BaseEntity implements UserDetails, RestEntity {
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return Boolean.TRUE.equals(accountEnabled);
+    }
+
+    public Boolean getSmsMfaEnabled() {
+        return smsMfaEnabled;
+    }
+
+    public void setSmsMfaEnabled(final Boolean smsMfaEnabled) {
+        this.smsMfaEnabled = smsMfaEnabled;
+    }
+
+    public Boolean getEmailMfaEnabled() {
+        return emailMfaEnabled;
+    }
+
+    public void setEmailMfaEnabled(final Boolean emailMfaEnabled) {
+        this.emailMfaEnabled = emailMfaEnabled;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(final Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public Boolean getPhoneVerified() {
+        return phoneVerified;
+    }
+
+    public void setPhoneVerified(final Boolean phoneVerified) {
+        this.phoneVerified = phoneVerified;
+    }
+
+    public String getPreferredMfaFactor() {
+        return preferredMfaFactor;
+    }
+
+    public void setPreferredMfaFactor(final String preferredMfaFactor) {
+        this.preferredMfaFactor = preferredMfaFactor;
+    }
+
+    public Boolean getAccountEnabled() {
+        return accountEnabled;
+    }
+
+    public void setAccountEnabled(final Boolean accountEnabled) {
+        this.accountEnabled = accountEnabled;
     }
 }

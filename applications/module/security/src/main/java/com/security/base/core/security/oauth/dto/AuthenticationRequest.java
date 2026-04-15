@@ -1,4 +1,4 @@
-package com.security.base.core.security.oauth;
+package com.security.base.core.security.oauth.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,5 +20,11 @@ public class AuthenticationRequest {
 
     // Optional TOTP code when two-factor is enabled
     private String otp;
+
+    // Optional MFA channel hint: TOTP, SMS, EMAIL
+    private String otpChannel;
+
+    // Required for SMS/EMAIL challenge verification in login second step
+    private String challengeId;
 
 }

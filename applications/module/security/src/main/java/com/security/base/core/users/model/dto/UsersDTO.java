@@ -25,6 +25,9 @@ public class UsersDTO extends BaseDTO implements RestDTO {
     @Size(max = 255)
     private String email;
 
+    @Size(max = 32)
+    private String phone;
+
     @NotNull
     @Size(max = 255)
     @UsersUsernameUnique
@@ -39,5 +42,17 @@ public class UsersDTO extends BaseDTO implements RestDTO {
     private Boolean twoFactorEnabled;
 
     private String totpSecret;
+
+    private Boolean smsMfaEnabled;
+
+    private Boolean emailMfaEnabled;
+
+    private String preferredMfaFactor;
+
+    private Boolean emailVerified;
+
+    private Boolean phoneVerified;
+
+    private Boolean accountEnabled;
 
 }

@@ -17,6 +17,21 @@
 * `ACLFilter` validates request URI + method against DB-mapped privileges and is the primary runtime authorization engine for `/api/**` routes.
 * `@PreAuthorize` is reserved for hard-stop governance endpoints, not routine CRUD authorization.
 
+=== Registration and MFA Model
+* Registration is two-step: `POST /register/init` sends OTP, `POST /register/verify` activates account.
+* Registration OTP channels are policy controlled and limited to `SMS` or `EMAIL`.
+* Login MFA is factor-agnostic and supports `TOTP`, `SMS`, and `EMAIL`.
+* Role policy can enforce MFA even if user-level MFA is optional.
+
+=== Runtime Security Policy Keys
+* `registration.allowed.channels`
+* `registration.default.channel`
+* `mfa.optional.per.user`
+* `mfa.enforced.roles`
+* `mfa.allowed.factors.user`
+* `mfa.allowed.factors.admin`
+* `mfa.allowed.factors.super_admin`
+
 === Seeded Baseline (Development)
 * Privileges are seeded by `PrivilegeLoader`.
 * Roles are seeded by `RoleLoader`.

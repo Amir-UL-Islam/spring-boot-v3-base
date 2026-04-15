@@ -1,4 +1,4 @@
-package com.security.base.core.security.oauth;
+package com.security.base.core.security.oauth.controller;
 
 import com.security.base.core.users.model.entity.Users;
 import com.security.base.core.users.repository.UsersRepository;
@@ -56,6 +56,14 @@ public class CurrentUserPermissionController {
         body.put("roles", roleNames);
         body.put("authorities", new ArrayList<>(authorities));
         body.put("matrix", matrix);
+        body.put("mfa", Map.of(
+                "totpEnabled", Boolean.TRUE.equals(user.getTwoFactorEnabled()),
+                "smsEnabled", Boolean.TRUE.equals(user.getSmsMfaEnabled()),
+                "emailEnabled", Boolean.TRUE.equals(user.getEmailMfaEnabled()),
+                "phoneVerified", Boolean.TRUE.equals(user.getPhoneVerified()),
+                "emailVerified", Boolean.TRUE.equals(user.getEmailVerified()),
+                "preferredFactor", user.getPreferredMfaFactor() == null ? "" : user.getPreferredMfaFactor()
+        ));
         return ResponseEntity.ok(body);
     }
 

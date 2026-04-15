@@ -52,6 +52,7 @@ public class TwoFactorController {
             return ResponseEntity.status(401).build();
         }
         user.setTwoFactorEnabled(true);
+        user.setPreferredMfaFactor("TOTP");
         usersRepository.save(user);
         return ResponseEntity.ok().build();
     }
@@ -61,6 +62,9 @@ public class TwoFactorController {
         final Users user = usersRepository.findByUsernameIgnoreCase(authentication.getName());
         user.setTwoFactorEnabled(false);
         user.setTotpSecret(null);
+        if ("TOTP".equalsIgnoreCase(user.getPreferredMfaFactor())) {
+            user.setPreferredMfaFactor(null);
+        }
         usersRepository.save(user);
         return ResponseEntity.ok().build();
     }

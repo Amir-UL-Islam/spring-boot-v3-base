@@ -47,6 +47,14 @@ public class UrlsLoader implements ApplicationRunner {
         grant(PermissionCodes.MATRIX_MANAGE,
                 entry("/api/policy/drift", methods("GET")));
 
+        grant(PermissionCodes.POLICY_READ,
+                entry("/api/security/policy", methods("GET")));
+        grant(PermissionCodes.POLICY_MANAGE,
+                entry("/api/security/policy", methods("PUT")));
+
+        grant(PermissionCodes.MFA_MANAGE,
+                entry("/api/mfa/settings", methods("GET", "PUT")));
+
         grant(PermissionCodes.USER_READ,
                 entry("/api/user", methods("GET")),
                 entry("/api/user/{id}", methods("GET")));
