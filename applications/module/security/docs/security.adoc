@@ -14,8 +14,8 @@
 
 === Runtime Enforcement Layers
 * HTTP security chain authenticates bearer JWT and enforces stateless access.
-* `ACLFilter` validates request URI + method against DB-mapped privileges.
-* Controller methods enforce business actions with `@PreAuthorize(hasAuthority(...))`.
+* `ACLFilter` validates request URI + method against DB-mapped privileges and is the primary runtime authorization engine for `/api/**` routes.
+* `@PreAuthorize` is reserved for hard-stop governance endpoints, not routine CRUD authorization.
 
 === Seeded Baseline (Development)
 * Privileges are seeded by `PrivilegeLoader`.
@@ -55,5 +55,10 @@
 2. Add seed in `PrivilegeLoader`.
 3. Attach to role(s) in `RoleLoader`.
 4. Map endpoint+method in `UrlsLoader`.
-5. Enforce with `@PreAuthorize` in controller/service.
+5. Use `@PreAuthorize` only if the endpoint is a governance hard-stop.
 6. Use `permissions.can("resource:action")` in admin UI.
+
+=== Developer Change Guide
+* Full end-to-end guideline: `applications/module/security/docs/policy-first-resource-guide.adoc`
+* Use it for resource additions, renames, deletions, endpoint changes, and security-sensitive refactors.
+

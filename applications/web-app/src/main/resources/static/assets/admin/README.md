@@ -30,3 +30,9 @@ These are created by `UserLoader` and intended for development mode only.
 - Non-admin roles can sign in and view their matrix but do not get full management screens.
 - Drift diagnostics are visible only with `matrix:manage` authority.
 
+## Developer Security Notes
+
+- The UI consumes policy; it is not the primary authorization engine.
+- If you add a new admin action, add the backend permission and URL policy first, then add the UI gate.
+- Full backend + UI change guide: `applications/module/security/docs/policy-first-resource-guide.adoc`.
+

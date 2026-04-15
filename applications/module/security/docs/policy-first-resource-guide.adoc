@@ -1,0 +1,529 @@
+= Policy-First Resource Change Guide
+
+== Purpose
+This guide is the canonical developer guideline for changing protected resources in the policy-first security model.
+
+Use this guide whenever you:
+
+* add a new API resource
+* add a new endpoint to an existing resource
+* rename or delete a permission
+* change an HTTP method or URL path
+* add a new admin UI action
+* remove a controller, service, or privilege
+* touch seeders, ACL logic, or policy drift tooling
+
+If a code change can change access behavior, it is in scope for this guide.
+
+== Security Model Summary
+
+=== Runtime source of truth
+The runtime authorization source of truth is:
+
+`Users -> Role -> Privilege -> Url(endpoint, method)`
+
+At runtime:
+
+. the request is authenticated by Spring Security / JWT
+. `ACLFilter` evaluates protected API requests
+. `PrivilegeService.hasPermission(...)` checks whether the current user authorities match privileges mapped to the current `Url(endpoint, method)`
+. the request is allowed or denied
+
+=== What `PermissionCodes` means
+`PermissionCodes` is not the primary runtime decision engine.
+It is the canonical permission vocabulary and naming contract.
+
+Use it for:
+
+* naming consistency
+* privilege seeding
+* role seeding
+* UI matrix grouping
+* drift tooling validation
+* hard-stop guards for special endpoints
+
+Do not assume that adding a constant to `PermissionCodes` alone secures anything.
+
+=== What is still guarded in code
+This project keeps selective `@PreAuthorize` only for hard-stop governance endpoints, for example:
+
+* policy drift diagnostics
+* especially sensitive management actions
+
+Routine CRUD endpoints should rely on URL policy mappings first.
+
+== Golden Rules
+
+. Every protected API endpoint must have an explicit URL policy mapping.
+. Every non-legacy privilege must follow `resource:action` format.
+. Every new privilege must be declared in `PermissionCodes`.
+. Every new privilege must be seeded in `PrivilegeLoader`.
+. Every role assignment change must be reflected in `RoleLoader` or explicit runtime admin policy setup.
+. Every UI action must be driven from `/api/me/permissions`.
+. Never widen `ACLFilter` bypass logic for `/api/**` routes.
+. Never use `return true` as a fallback when URL policy is missing.
+. Run the smoke test after security-sensitive changes.
+
+== End-to-End Flow for Adding a New Resource
+
+Example resource: `report`
+
+Target endpoints:
+
+* `GET /api/reports`
+* `POST /api/reports`
+* `DELETE /api/reports/{id}`
+
+=== Step 1: define permissions
+Add permission constants to `PermissionCodes`.
+
+[source,java]
+----
+public static final String REPORT_READ = "report:read";
+public static final String REPORT_CREATE = "report:create";
+public static final String REPORT_DELETE = "report:delete";
+----
+
+Best practice:
+
+* use singular resource names (`report`, `invoice`, `patient`)
+* use stable action names (`read`, `create`, `update`, `delete`, `assign`, `manage`)
+* do not create synonyms like `view`, `get`, `list` unless truly different actions are needed
+
+=== Step 2: seed privileges
+Add them in `PrivilegeLoader`.
+
+[source,java]
+----
+createIfMissing(PermissionCodes.REPORT_READ);
+createIfMissing(PermissionCodes.REPORT_CREATE);
+createIfMissing(PermissionCodes.REPORT_DELETE);
+----
+
+If you skip this step:
+
+* roles cannot resolve the privilege
+* URL seeding may silently skip mapping
+* UI may drift from backend policy
+
+=== Step 3: assign privileges to roles
+Update `RoleLoader` or define the change explicitly through the admin matrix after startup.
+
+Example:
+
+[source,java]
+----
+upsertRole(UserRoles.ADMIN, "Administrator",
+        resolvePrivileges(
+                // ...existing privileges...
+                PermissionCodes.REPORT_READ,
+                PermissionCodes.REPORT_CREATE
+        ));
+----
+
+Decision guidance:
+
+* use loaders for baseline system defaults
+* use runtime matrix UI for environment-specific policy decisions
+
+=== Step 4: map endpoint + method in `UrlsLoader`
+Every new protected API endpoint must be mapped.
+
+[source,java]
+----
+grant(PermissionCodes.REPORT_READ,
+        entry("/api/reports", methods("GET")));
+grant(PermissionCodes.REPORT_CREATE,
+        entry("/api/reports", methods("POST")));
+grant(PermissionCodes.REPORT_DELETE,
+        entry("/api/reports/{id}", methods("DELETE")));
+----
+
+Important:
+
+* map the exact Spring MVC pattern that the controller exposes
+* keep one permission per action unless you intentionally need a shared privilege
+* if the path changes, the mapping must change too
+
+=== Step 5: implement controller/service
+Add the controller method(s).
+
+Routine endpoints do not need per-method `@PreAuthorize` if URL policy is the intended primary engine.
+
+Use `@PreAuthorize` only when:
+
+* the endpoint is a governance hard-stop
+* the endpoint must never be runtime-reassignable
+* the endpoint protects security tooling itself
+
+=== Step 6: expose it in the Matrix UI
+Use `/api/me/permissions` as the UI capability source.
+
+Example in `app.js`:
+
+[source,javascript]
+----
+if (permissions.can("report:create")) {
+  // show create report button
+}
+----
+
+UI rule:
+
+* buttons must not be shown merely because the user has a role name
+* buttons must be shown because the user has the effective permission code
+
+=== Step 7: validate drift
+Check:
+
+* `GET /api/policy/drift`
+* startup logs from `PolicyDriftStartupCheck`
+* `./smoke-policy-first.sh`
+
+== End-to-End Flow for Changing an Existing Resource
+
+=== Renaming a permission
+Example:
+
+`patient:read` -> `patient:view`
+
+This is high risk.
+
+You must update:
+
+. `PermissionCodes`
+. `PrivilegeLoader`
+. `RoleLoader`
+. `UrlsLoader`
+. existing DB policies if already customized at runtime
+. UI checks in `app.js`
+. smoke tests / docs
+
+Best practice:
+
+* avoid renaming permissions casually
+* prefer adding a new permission and deprecating the old one deliberately
+
+=== Changing a URL path
+Example:
+
+`/api/report` -> `/api/reports`
+
+You must update:
+
+. controller mapping
+. `UrlsLoader`
+. any runtime URL policies in the DB
+. admin UI calls
+. smoke tests
+
+Risk:
+
+* if the new path is not mapped, policy-first should deny it
+* if the old path remains mapped but controller is removed, drift can appear
+
+=== Changing HTTP method
+Example:
+
+`POST /api/report/search` -> `GET /api/report/search`
+
+You must update the URL policy method mapping too.
+
+Remember: in this system, `GET` and `POST` are separate policy objects.
+
+== End-to-End Flow for Deleting a Resource Safely
+
+Deleting a resource is usually more dangerous than adding one.
+
+=== Required deletion checklist
+
+. remove or deprecate controller mappings
+. remove corresponding URL mappings from seed logic if baseline-managed
+. remove or deprecate privileges if they are no longer used
+. remove role assignments if the privileges are retired
+. remove UI capability checks / menu entries / buttons
+. run drift diagnostics
+. run smoke test
+
+=== Recommended order
+
+. first hide UI action
+. then stop calling the endpoint
+. then delete controller endpoint and URL policy mapping
+. finally remove unused privilege constants and role assignments
+
+This order reduces broken UI states and access confusion.
+
+== Extra-Care Changes
+
+These changes require security review before merge.
+
+=== 1. Any `ACLFilter` change
+Files:
+
+* `ACLFilter`
+* `PrivilegeService.hasPermission(...)`
+* `JwtSecurityConfig`
+
+Why it is sensitive:
+
+* can widen access to all APIs
+* can bypass policy-first model entirely
+* can turn deny-by-default into allow-by-default
+
+=== 2. Any public whitelist change
+Files:
+
+* `JwtSecurityConfig`
+* `ACLFilter.PUBLIC_PATHS`
+
+Why it is sensitive:
+
+* public endpoints bypass authentication or policy checks
+* careless additions can expose admin/security APIs publicly
+
+=== 3. Any seed loader change
+Files:
+
+* `PrivilegeLoader`
+* `RoleLoader`
+* `UrlsLoader`
+* `EndpointSync`
+* `UserLoader`
+
+Why it is sensitive:
+
+* baseline permissions can be silently broadened
+* new defaults may grant more access than intended
+* policy drift may be hidden by over-broad seeding
+
+=== 4. Any matrix UI permission check change
+Files:
+
+* `app.js`
+* `/api/me/permissions`
+
+Why it is sensitive:
+
+* users may see controls they cannot use
+* users may lose controls even though policy allows them
+* reviewers may think a backend change is broken when the issue is just UI gating
+
+=== 5. Any role default or onboarding change
+Files:
+
+* `RegistrationService`
+* `AuthenticationController`
+* `UserLoader`
+
+Why it is sensitive:
+
+* new users may get excessive privileges by default
+* social-login flows can unintentionally widen access
+
+== Best Practices
+
+=== Best practice: add explicit URL policy for every API endpoint
+[source,java]
+----
+grant(PermissionCodes.REPORT_UPDATE,
+        entry("/api/reports/{id}", methods("PUT")));
+----
+
+=== Best practice: keep permissions action-based, not UI-label-based
+Good:
+
+* `report:read`
+* `report:create`
+* `report:approve`
+
+Avoid:
+
+* `report:button1`
+* `report:blue-action`
+* `screen:report-page`
+
+=== Best practice: use matrix UI as a consumer of policy, not a second policy engine
+The admin UI should display and manage the policy, not invent parallel permission rules.
+
+=== Best practice: prefer additive changes over renames
+Adding `report:export` is safer than renaming `report:read` to something else.
+
+=== Best practice: make governance endpoints hard-stop protected
+Example candidates:
+
+* drift diagnostics
+* bulk policy editors
+* policy audit endpoints
+
+== Safe Anti-Pattern / Malicious Change Examples
+
+These examples are intentionally bad. They are included so reviewers can recognize dangerous code quickly.
+Do not merge code like this.
+
+=== Malicious / dangerous example 1: allow everything when URL policy is missing
+[source,java]
+----
+// DANGEROUS: breaks policy-first and silently bypasses security
+if (permissions.isEmpty()) {
+    return true;
+}
+----
+
+Why it is dangerous:
+
+* every new unmapped endpoint becomes reachable
+* developers can forget `UrlsLoader` and still pass casual testing
+* policy drift becomes a runtime security hole, not just a warning
+
+=== Malicious / dangerous example 2: bypass ACL for all admin APIs
+[source,java]
+----
+// DANGEROUS: this makes all /api routes effectively public after auth, or worse if combined with other mistakes
+if (urlPattern.startsWith("/api")) {
+    filterChain.doFilter(request, response);
+    return;
+}
+----
+
+Why it is dangerous:
+
+* disables policy-first enforcement for the main protected surface
+* turns the matrix DB into theater instead of enforcement
+* may not be obvious in UI-only testing
+
+=== Malicious / dangerous example 3: expose policy tooling publicly
+[source,java]
+----
+.requestMatchers(
+    "/api/policy/**"
+).permitAll()
+----
+
+Why it is dangerous:
+
+* exposes policy diagnostics or future policy management APIs
+* may leak internal authorization design
+* future bulk-edit APIs would become catastrophic if public
+
+=== Malicious / dangerous example 4: assign excessive defaults during onboarding
+[source,java]
+----
+// DANGEROUS: over-privileged default assignment
+users.setRole(Set.of(roleRepository.findByName(UserRoles.SUPER_ADMIN)));
+----
+
+Why it is dangerous:
+
+* instant privilege escalation for new or social users
+* bypasses intended admin review and policy control
+
+=== Malicious / dangerous example 5: UI-only security
+[source,javascript]
+----
+// DANGEROUS: hiding a button does not secure the API
+if (!permissions.can("user:delete")) {
+  document.getElementById("delete-button").style.display = "none";
+}
+// ...but backend policy was never created or reviewed
+----
+
+Why it is dangerous:
+
+* UI hiding is not authorization
+* attackers or power users can still call the API directly if backend is weak
+
+=== Malicious / dangerous example 6: fake drift compliance by weakening drift tooling
+[source,java]
+----
+// DANGEROUS: hides real policy gaps
+if (urlPolicy == null) {
+    return;
+}
+----
+
+Why it is dangerous:
+
+* drift report stops reflecting missing policy mappings
+* reviewers get false confidence
+* security regressions survive startup and dashboard checks
+
+== Policy Drift Review Checklist
+
+Before merge, review all of the following:
+
+. Did you add or change any `/api/**` route?
+. Is there an explicit `UrlsLoader` mapping for it?
+. Is the permission declared in `PermissionCodes`?
+. Is the privilege seeded in `PrivilegeLoader`?
+. Are baseline role assignments intentional in `RoleLoader`?
+. Does `/api/me/permissions` expose the expected matrix row?
+. Does the admin UI use `permissions.can(...)` consistently?
+. Does `GET /api/policy/drift` stay clean or explain the known diff?
+. Did `./smoke-policy-first.sh` pass?
+
+== Pull Request Template for Security-Sensitive Changes
+
+Use this checklist in PR descriptions.
+
+[source,text]
+----
+Security impact:
+- [ ] Added/changed protected API route
+- [ ] Updated PermissionCodes
+- [ ] Updated PrivilegeLoader
+- [ ] Updated RoleLoader or documented runtime policy expectation
+- [ ] Updated UrlsLoader
+- [ ] Updated matrix UI capability checks
+- [ ] Checked /api/policy/drift
+- [ ] Ran ./smoke-policy-first.sh
+- [ ] Reviewed public whitelist / ACL changes
+----
+
+== Worked Example: Add `report:export`
+
+=== Backend
+. Add `REPORT_EXPORT = "report:export"` to `PermissionCodes`
+. Seed in `PrivilegeLoader`
+. Assign to intended role(s) in `RoleLoader`
+. Map endpoint in `UrlsLoader`
++
+[source,java]
+----
+grant(PermissionCodes.REPORT_EXPORT,
+        entry("/api/reports/{id}/export", methods("POST")));
+----
+. Implement controller endpoint
+
+=== UI
+. Add a button shown only if `permissions.can("report:export")`
+. Keep the UI disabled/hidden when absent
+. Do not hardcode role checks such as `SUPER_ADMIN` for action visibility
+
+=== Validation
+. Login as `superadmin`
+. Verify `/api/me/permissions` includes `report -> export`
+. Check drift report
+. Run smoke test
+
+== Worked Example: Delete `ambulance:update`
+
+. Remove UI affordance first
+. Remove URL policy mapping
+. Remove privilege from baseline role assignment
+. Remove constant only after no remaining reference exists
+. Run drift report and compile
+
+== Final Reminder
+If a resource change touches access behavior, assume it is a security change.
+In this project, the most common way to break security is not by writing obvious exploit code, but by creating silent drift between:
+
+* `PermissionCodes`
+* seeded privileges
+* seeded or runtime role assignments
+* URL policy mappings
+* UI capability checks
+* ACL enforcement
+
+Treat these as one change set, not independent edits.
+

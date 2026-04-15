@@ -34,6 +34,11 @@
 == User Onboarding
 * See `USER_ONBOARDING.md` for role/permission onboarding and matrix extension steps
 
+== Developer Security Change Guide
+* Canonical guide: `applications/module/security/docs/policy-first-resource-guide.adoc`
+* Use it for adding, deleting, renaming, or refactoring any protected resource or endpoint
+* Includes best practices, review checklist, policy drift cautions, and dangerous anti-pattern examples
+
 == Policy-First Smoke Test
 * Script: `./smoke-policy-first.sh`
 * Validates login, matrix endpoint, policy diagnostics authorization, and deny-by-default behavior for unknown API routes

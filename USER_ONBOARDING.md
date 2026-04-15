@@ -49,8 +49,12 @@ Use lower-case matrix permissions:
 2. Seed privilege in `PrivilegeLoader`.
 3. Assign to role(s) in `RoleLoader`.
 4. Map endpoint+method in `UrlsLoader`.
-5. Enforce in controller/service using `@PreAuthorize("hasAuthority('resource:action')")`.
+5. Use `@PreAuthorize` only for governance hard-stop endpoints; routine CRUD authorization is policy-first through URL mappings.
 6. Surface behavior in admin UI (`/assets/admin/app.js`) using `permissions.can("resource:action")`.
+
+## Developer Guide
+- For end-to-end resource changes, see `applications/module/security/docs/policy-first-resource-guide.adoc`.
+- Use that guide before adding/removing endpoints, renaming permissions, or touching ACL behavior.
 
 ## Troubleshooting
 - `403 Access Denied`: check URL mapping (`/api/url`) and role privilege assignment.
